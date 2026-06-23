@@ -27,6 +27,15 @@ export const ProjectDocuments: CollectionConfig = {
       index: true,
     },
     {
+      name: 'user',
+      type: 'relationship',
+      relationTo: 'users',
+      index: true,
+      admin: {
+        hidden: true,
+      },
+    },
+    {
       name: 'revision',
       type: 'number',
       required: true,

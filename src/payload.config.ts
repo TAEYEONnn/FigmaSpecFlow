@@ -7,6 +7,8 @@ import { Projects } from './collections/Projects'
 import { Sources } from './collections/Sources'
 import { CompilationRuns } from './collections/CompilationRuns'
 import { ProjectDocuments } from './collections/ProjectDocuments'
+import { Profiles } from './collections/Profiles'
+import { LoginAttempts } from './collections/LoginAttempts'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -18,7 +20,16 @@ export default buildFigmaConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Projects, Sources, CompilationRuns, ProjectDocuments],
+  collections: [
+    Users,
+    Profiles,
+    Media,
+    Projects,
+    Sources,
+    CompilationRuns,
+    ProjectDocuments,
+    LoginAttempts,
+  ],
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },

@@ -68,11 +68,13 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
+    profiles: Profile;
     media: Media;
     projects: Project;
     sources: Source;
     'compilation-runs': CompilationRun;
     'project-documents': ProjectDocument;
+    'login-attempts': LoginAttempt;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -81,11 +83,13 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
+    profiles: ProfilesSelect<false> | ProfilesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
     sources: SourcesSelect<false> | SourcesSelect<true>;
     'compilation-runs': CompilationRunsSelect<false> | CompilationRunsSelect<true>;
     'project-documents': ProjectDocumentsSelect<false> | ProjectDocumentsSelect<true>;
+    'login-attempts': LoginAttemptsSelect<false> | LoginAttemptsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -143,6 +147,18 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "profiles".
+ */
+export interface Profile {
+  id: string;
+  user: string | User;
+  username: string;
+  internalEmail: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
@@ -181,6 +197,7 @@ export interface Project {
 export interface ProjectDocument {
   id: string;
   project: string | Project;
+  user?: (string | null) | User;
   revision: number;
   document:
     | {
@@ -202,6 +219,7 @@ export interface ProjectDocument {
 export interface CompilationRun {
   id: string;
   project: string | Project;
+  user?: (string | null) | User;
   status: 'queued' | 'running' | 'completed' | 'failed';
   model?: string | null;
   promptVersion?: string | null;
@@ -228,10 +246,24 @@ export interface CompilationRun {
 export interface Source {
   id: string;
   project: string | Project;
+  user?: (string | null) | User;
   name?: string | null;
   sourceType?: ('paste' | 'txt' | 'md' | 'pdf') | null;
   content?: string | null;
   sizeBytes?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "login-attempts".
+ */
+export interface LoginAttempt {
+  id: string;
+  attemptKey: string;
+  attemptCount: number;
+  windowStartedAt: string;
+  blockedUntil?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -264,6 +296,10 @@ export interface PayloadLockedDocument {
         value: string | User;
       } | null)
     | ({
+        relationTo: 'profiles';
+        value: string | Profile;
+      } | null)
+    | ({
         relationTo: 'media';
         value: string | Media;
       } | null)
@@ -282,6 +318,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'project-documents';
         value: string | ProjectDocument;
+      } | null)
+    | ({
+        relationTo: 'login-attempts';
+        value: string | LoginAttempt;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -338,6 +378,17 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "profiles_select".
+ */
+export interface ProfilesSelect<T extends boolean = true> {
+  user?: T;
+  username?: T;
+  internalEmail?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
@@ -373,6 +424,7 @@ export interface ProjectsSelect<T extends boolean = true> {
  */
 export interface SourcesSelect<T extends boolean = true> {
   project?: T;
+  user?: T;
   name?: T;
   sourceType?: T;
   content?: T;
@@ -386,6 +438,7 @@ export interface SourcesSelect<T extends boolean = true> {
  */
 export interface CompilationRunsSelect<T extends boolean = true> {
   project?: T;
+  user?: T;
   status?: T;
   model?: T;
   promptVersion?: T;
@@ -403,9 +456,22 @@ export interface CompilationRunsSelect<T extends boolean = true> {
  */
 export interface ProjectDocumentsSelect<T extends boolean = true> {
   project?: T;
+  user?: T;
   revision?: T;
   document?: T;
   sourceRun?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "login-attempts_select".
+ */
+export interface LoginAttemptsSelect<T extends boolean = true> {
+  attemptKey?: T;
+  attemptCount?: T;
+  windowStartedAt?: T;
+  blockedUntil?: T;
   updatedAt?: T;
   createdAt?: T;
 }

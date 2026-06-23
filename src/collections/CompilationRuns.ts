@@ -27,6 +27,15 @@ export const CompilationRuns: CollectionConfig = {
       index: true,
     },
     {
+      name: 'user',
+      type: 'relationship',
+      relationTo: 'users',
+      index: true,
+      admin: {
+        hidden: true,
+      },
+    },
+    {
       name: 'status',
       type: 'select',
       required: true,

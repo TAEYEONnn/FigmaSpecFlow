@@ -27,6 +27,15 @@ export const Sources: CollectionConfig = {
       index: true,
     },
     {
+      name: 'user',
+      type: 'relationship',
+      relationTo: 'users',
+      index: true,
+      admin: {
+        hidden: true,
+      },
+    },
+    {
       name: 'name',
       type: 'text',
     },

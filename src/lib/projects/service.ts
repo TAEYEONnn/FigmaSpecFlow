@@ -192,6 +192,7 @@ export async function addSource(
     collection: 'sources',
     data: {
       project: projectId,
+      user: auth.userId,
       name: source.name,
       sourceType: source.type,
       content: source.content,
@@ -271,6 +272,7 @@ export async function createCompilationRun(projectId: string) {
     collection: 'compilation-runs',
     data: {
       project: projectId,
+      user: auth.userId,
       status: 'running',
       model: process.env.OPENAI_MODEL ?? 'gpt-5.4',
       promptVersion: COMPILER_PROMPT_VERSION,
@@ -341,6 +343,7 @@ export async function saveProjectDocument(
     collection: 'project-documents',
     data: {
       project: projectId,
+      user: auth.userId,
       revision: newRevision,
       document: document as unknown as Record<string, unknown>,
       sourceRun: runId ?? undefined,
