@@ -1,17 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { ensureBrowserStorageAccess } from "@/lib/auth/storage-access";
 
 export function SignupForm() {
-  const router = useRouter();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending) return;
+    await ensureBrowserStorageAccess();
     setError("");
     setPending(true);
 
@@ -37,7 +37,7 @@ export function SignupForm() {
         setError(data.error ?? "계정을 만들지 못했어요.");
         return;
       }
-      router.push("/projects");
+      window.location.assign("/projects");
     } catch {
       setError("네트워크 연결을 확인해 주세요.");
     } finally {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { ensureBrowserStorageAccess } from "@/lib/auth/storage-access";
 
 export function LoginForm({ isDemo = false }: { isDemo?: boolean }) {
   const [error, setError] = useState("");
@@ -17,6 +18,7 @@ export function LoginForm({ isDemo = false }: { isDemo?: boolean }) {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending) return;
+    await ensureBrowserStorageAccess();
     setError("");
     setSlowIndicator(false);
     setPending(true);
