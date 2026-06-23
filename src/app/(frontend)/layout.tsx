@@ -1,5 +1,6 @@
 import React from 'react'
 import './styles.css'
+import { GlobalWorkspaceShell } from '@/components/workspace-global/workspace-shell'
 
 export const metadata = {
   description: 'Turn source material into structured product specifications.',
@@ -12,7 +13,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="ko">
       <body>
-        <main>{children}</main>
+        <GlobalWorkspaceShell>{children}</GlobalWorkspaceShell>
       </body>
     </html>
   )
