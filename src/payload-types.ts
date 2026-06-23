@@ -178,6 +178,7 @@ export interface User {
  */
 export interface Account {
   id: string;
+  displayName?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -237,6 +238,7 @@ export interface Project {
   name: string;
   revision?: number | null;
   needsRecompile?: boolean | null;
+  archived?: boolean | null;
   currentDocument?: (string | null) | ProjectDocument;
   owner: string | Account;
   team?: (string | null) | Team;
@@ -339,7 +341,7 @@ export interface TeamMember {
   id: string;
   team: string | Team;
   user: string | Account;
-  role: 'owner' | 'member';
+  role: 'owner' | 'admin' | 'member';
   updatedAt: string;
   createdAt: string;
 }
@@ -499,6 +501,7 @@ export interface UsersSelect<T extends boolean = true> {
  * via the `definition` "accounts_select".
  */
 export interface AccountsSelect<T extends boolean = true> {
+  displayName?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -553,6 +556,7 @@ export interface ProjectsSelect<T extends boolean = true> {
   name?: T;
   revision?: T;
   needsRecompile?: T;
+  archived?: T;
   currentDocument?: T;
   owner?: T;
   team?: T;

@@ -9,7 +9,7 @@ type InvitationView = {
   token: string;
   email: string;
   status: "pending" | "accepted" | "rejected";
-  role: "owner" | "member";
+  role: "owner" | "admin" | "member";
   expiresAt: string;
   teamId: string;
   teamName: string;

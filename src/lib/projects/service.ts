@@ -479,3 +479,77 @@ async function markProjectNeedsRecompile(
     data: { needsRecompile: true },
   })
 }
+
+export async function archiveProject(projectId: string) {
+  const auth = await requireAuthContext()
+  if (auth.demo) return
+  const payload = await getPayloadClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await payload.update({ collection: 'projects', id: projectId, data: { archived: true } as any })
+}
+
+export async function unarchiveProject(projectId: string) {
+  const auth = await requireAuthContext()
+  if (auth.demo) return
+  const payload = await getPayloadClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await payload.update({ collection: 'projects', id: projectId, data: { archived: false } as any })
+}
+
+export async function moveProject(projectId: string, toTeamId: string | null) {
+  const auth = await requireAuthContext()
+  if (auth.demo) return
+  const payload = await getPayloadClient()
+
+  // Verify user owns the project
+  const project = await payload.findByID({ collection: 'projects', id: projectId })
+  const ownerId = project.owner && typeof project.owner === 'object' && 'id' in project.owner
+    ? String((project.owner as { id: unknown }).id)
+    : String(project.owner)
+  if (ownerId !== auth.userId) throw new Error('프로젝트 소유자만 팀을 변경할 수 있어요.')
+
+  if (toTeamId) {
+    // Verify user is member of target team
+    const { getMyTeamIds } = await import('@/lib/teams/service')
+    const myTeamIds = await getMyTeamIds()
+    if (!myTeamIds.includes(toTeamId)) throw new Error('대상 팀의 멤버가 아니에요.')
+  }
+
+  await payload.update({
+    collection: 'projects',
+    id: projectId,
+    data: { team: toTeamId as unknown as string },
+  })
+}
+
+export async function listTeamProjects(teamId: string) {
+  const auth = await requireAuthContext()
+  if (auth.demo) return []
+  const payload = await getPayloadClient()
+
+  // Verify membership
+  const { getMyTeamIds } = await import('@/lib/teams/service')
+  const myTeamIds = await getMyTeamIds()
+  if (!myTeamIds.includes(teamId)) throw new Error('접근 권한이 없습니다.')
+
+  const result = await payload.find({
+    collection: 'projects',
+    where: { team: { equals: teamId } },
+    sort: '-updatedAt',
+    depth: 1,
+    limit: 100,
+  })
+
+  return result.docs.map((doc) => ({
+    id: String(doc.id),
+    name: doc.name,
+    revision: doc.revision ?? 0,
+    needsRecompile: doc.needsRecompile ?? false,
+    archived: (doc as unknown as Record<string, unknown>).archived === true,
+    document: null,
+    sources: [],
+    runs: [],
+    updatedAt: doc.updatedAt,
+    teamId,
+  }))
+}

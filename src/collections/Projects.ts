@@ -26,6 +26,11 @@ export const Projects: CollectionConfig = {
       defaultValue: false,
     },
     {
+      name: 'archived',
+      type: 'checkbox',
+      defaultValue: false,
+    },
+    {
       name: 'currentDocument',
       type: 'relationship',
       relationTo: 'project-documents',

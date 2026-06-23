@@ -1,41 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { ensureBrowserStorageAccess } from "@/lib/auth/storage-access";
 
 export function SignupForm({ next }: { next?: string }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending) return;
-    await ensureBrowserStorageAccess();
-    setError("");
-    setPending(true);
-
-    const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email") ?? "").trim();
-    const password = String(formData.get("password") ?? "");
-    const confirm = String(formData.get("confirm") ?? "");
-
     if (password !== confirm) {
       setError("비밀번호가 일치하지 않아요.");
-      setPending(false);
       return;
     }
-
+    setError("");
+    setPending(true);
     try {
-      const response = await fetch("/api/auth/signup", {
+      await ensureBrowserStorageAccess();
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim(), password }),
       });
-      const data = await response.json();
-      if (!response.ok) {
-        setError(data.error ?? "계정을 만들지 못했어요.");
+      const contentType = res.headers.get("content-type") ?? "";
+      const data = contentType.includes("application/json") ? await res.json() : null;
+      if (!res.ok) {
+        setError(data?.error ?? "계정을 만들지 못했어요.");
         return;
       }
       const redirectTo = next && next.startsWith("/") ? next : "/projects";
@@ -59,6 +55,8 @@ export function SignupForm({ next }: { next?: string }) {
           required
           placeholder="you@example.com"
           disabled={pending}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
       </label>
       <label className="field-label">
@@ -71,6 +69,8 @@ export function SignupForm({ next }: { next?: string }) {
           required
           placeholder="8자 이상"
           disabled={pending}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
       </label>
       <label className="field-label">
@@ -81,8 +81,9 @@ export function SignupForm({ next }: { next?: string }) {
           type="password"
           autoComplete="new-password"
           required
-          placeholder=""
           disabled={pending}
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
         />
       </label>
       {error ? <p className="form-error" role="alert">{error}</p> : null}

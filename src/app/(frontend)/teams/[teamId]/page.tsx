@@ -34,6 +34,7 @@ export default async function TeamPage({ params }: { params: Promise<{ teamId: s
           teamName={team.name}
           ownerId={team.ownerId}
           myUserId={auth.userId}
+          myRole={team.members.find((m) => m.userId === auth.userId)?.role ?? "member"}
           initialMembers={team.members}
           initialInvitations={invitations}
         />

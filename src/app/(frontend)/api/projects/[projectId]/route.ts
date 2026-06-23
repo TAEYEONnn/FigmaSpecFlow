@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError } from "@/lib/api/response";
-import { deleteProject, getProject, renameProject } from "@/lib/projects/service";
+import { archiveProject, deleteProject, getProject, moveProject, renameProject, unarchiveProject } from "@/lib/projects/service";
 
 export async function GET(
   _request: Request,
@@ -19,8 +19,10 @@ export async function GET(
   }
 }
 
-const renameSchema = z.object({
-  name: z.string().min(1).max(120),
+const patchSchema = z.object({
+  name: z.string().min(1).max(120).optional(),
+  teamId: z.string().nullable().optional(),
+  archived: z.boolean().optional(),
 });
 
 export async function PATCH(
@@ -29,12 +31,15 @@ export async function PATCH(
 ) {
   try {
     const { projectId } = await params;
-    const body = renameSchema.parse(await request.json());
-    await renameProject(projectId, body.name);
+    const body = patchSchema.parse(await request.json());
+    if (body.name !== undefined) await renameProject(projectId, body.name);
+    if (body.teamId !== undefined) await moveProject(projectId, body.teamId);
+    if (body.archived === true) await archiveProject(projectId);
+    if (body.archived === false) await unarchiveProject(projectId);
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "프로젝트 이름을 확인해 주세요." }, { status: 422 });
+      return NextResponse.json({ error: "입력값을 확인해 주세요." }, { status: 422 });
     }
     return apiError(error);
   }

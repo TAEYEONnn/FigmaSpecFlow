@@ -3261,3 +3261,153 @@ textarea:focus-visible {
   color: #00804a;
   margin: 0;
 }
+
+/* Team Switcher */
+.team-switcher {
+  position: relative;
+  display: inline-block;
+  margin-top: 6px;
+}
+
+.team-switcher-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--surface-2, #f5f5f5);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text-1);
+}
+
+.team-switcher-trigger:hover {
+  background: var(--surface-3, #ebebeb);
+}
+
+.team-switcher-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 180px;
+  background: var(--surface-1, #fff);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  z-index: 100;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.team-switcher-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 5px;
+  font-size: 13px;
+  color: var(--text-1);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.team-switcher-item:hover {
+  background: var(--surface-2, #f5f5f5);
+}
+
+.team-switcher-item--active {
+  font-weight: 600;
+  background: var(--surface-2, #f5f5f5);
+}
+
+.team-switcher-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 4px 0;
+}
+
+/* Project search */
+.project-search-row {
+  margin-bottom: 16px;
+}
+
+.project-search-wrap {
+  position: relative;
+  max-width: 320px;
+}
+
+.project-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-3, #999);
+  pointer-events: none;
+}
+
+.project-search-input {
+  width: 100%;
+  padding-left: 32px;
+}
+
+/* Project move panel */
+.project-move-panel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface-2, #f5f5f5);
+  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.project-action-button {
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-3, #999);
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.project-row-wrapper:hover .project-action-button {
+  opacity: 1;
+}
+
+.project-action-button:hover {
+  color: var(--text-1);
+  background: var(--surface-2, #f5f5f5);
+}
+
+/* Project team badge */
+.project-team-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--surface-2, #f0f0f0);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-right: 6px;
+  color: var(--text-2, #555);
+}
+
+.button-sm {
+  padding: 4px 10px;
+  font-size: 13px;
+  height: auto;
+}
+
+/* Team settings back button */
+.team-settings-back {
+  margin-bottom: 24px;
+}

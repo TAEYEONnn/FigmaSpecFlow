@@ -15,7 +15,6 @@ export function CreateTeamForm() {
     if (pending || !name.trim()) return;
     setError("");
     setPending(true);
-
     try {
       const res = await fetch("/api/teams", {
         method: "POST",
@@ -30,6 +29,16 @@ export function CreateTeamForm() {
     } finally {
       setPending(false);
     }
+  }
+
+  function handleCancel() {
+    if (name.trim()) {
+      const confirmed = window.confirm(
+        "팀 만들기를 중단할까요?\n입력한 내용은 저장되지 않아요.",
+      );
+      if (!confirmed) return;
+    }
+    router.push("/projects");
   }
 
   return (
@@ -48,7 +57,9 @@ export function CreateTeamForm() {
       </label>
       {error && <p className="form-error">{error}</p>}
       <div className="form-actions">
-        <Link className="button button-ghost" href="/projects">취소</Link>
+        <button className="button button-ghost" type="button" onClick={handleCancel} disabled={pending}>
+          취소
+        </button>
         <button className="button button-primary" type="submit" disabled={pending || !name.trim()}>
           {pending ? "만드는 중…" : "팀 만들기"}
         </button>

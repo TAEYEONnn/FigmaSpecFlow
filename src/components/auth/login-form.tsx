@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { ensureBrowserStorageAccess } from "@/lib/auth/storage-access";
 
 export function LoginForm({
@@ -13,35 +12,36 @@ export function LoginForm({
   next?: string;
 }) {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending) return;
-    await ensureBrowserStorageAccess();
     setError("");
     setPending(true);
-
-    const fd = new FormData(event.currentTarget);
-    const username = String(fd.get("email") ?? "").trim();
-    const password = String(fd.get("password") ?? "");
-
     try {
+      await ensureBrowserStorageAccess();
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ username, password, ...(next ? { next } : {}) }),
+        body: JSON.stringify({ username: email.trim(), password, ...(next ? { next } : {}) }),
       });
-      const data = await res.json();
+      const contentType = res.headers.get("content-type") ?? "";
+      const data = contentType.includes("application/json") ? await res.json() : null;
       if (!res.ok) {
-        setError(data.error ?? "아이디 또는 비밀번호를 확인해 주세요.");
+        setError(data?.error ?? "아이디 또는 비밀번호를 확인해 주세요.");
         return;
       }
-      const redirectTo = (data.redirectTo && String(data.redirectTo).startsWith("/"))
-        ? data.redirectTo
-        : (next && next.startsWith("/") ? next : "/projects");
+      const redirectTo =
+        data?.redirectTo && String(data.redirectTo).startsWith("/")
+          ? data.redirectTo
+          : next && next.startsWith("/")
+            ? next
+            : "/projects";
       router.push(redirectTo);
     } catch {
       setError("네트워크 연결을 확인해 주세요.");
@@ -68,6 +68,8 @@ export function LoginForm({
           required
           placeholder="you@example.com"
           disabled={pending}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
       </label>
       <label className="field-label" htmlFor="login-password">
@@ -80,6 +82,8 @@ export function LoginForm({
           autoComplete="current-password"
           required
           disabled={pending}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
       </label>
       {error ? <p className="form-error" role="alert">{error}</p> : null}
@@ -88,10 +92,6 @@ export function LoginForm({
           <><span className="btn-spinner" aria-hidden="true" />로그인 중…</>
         ) : "로그인"}
       </button>
-      <p style={{ textAlign: "center", marginTop: "12px", fontSize: "14px", color: "var(--fg-muted)" }}>
-        아직 계정이 없나요?{" "}
-        <Link href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"} style={{ color: "var(--accent)" }}>가입하기</Link>
-      </p>
     </form>
   );
 }

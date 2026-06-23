@@ -19,6 +19,7 @@ export const TeamMembers: CollectionConfig = {
       defaultValue: 'member',
       options: [
         { label: 'Owner', value: 'owner' },
+        { label: 'Admin', value: 'admin' },
         { label: 'Member', value: 'member' },
       ],
     },
