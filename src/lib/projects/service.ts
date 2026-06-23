@@ -19,6 +19,7 @@ import {
 import type { SpecDocument } from '@/lib/spec/schema'
 import { parseStoredSpecDocument } from '@/lib/spec/stored-document'
 import { assertRevision } from '@/lib/projects/revision'
+import type { Project } from '@/payload-types'
 
 export type ProjectView = {
   id: string
@@ -110,7 +111,7 @@ export async function getProject(
 
   const payload = await getPayloadClient()
 
-  let project: Awaited<ReturnType<typeof payload.findByID<'projects'>>>
+  let project: Project
   try {
     project = await payload.findByID({
       collection: 'projects',

@@ -12,6 +12,13 @@ export async function POST(request: Request) {
       data: { email, password },
     })
 
+    if (!result.user) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid credentials' },
+        { status: 401 },
+      )
+    }
+
     const response = NextResponse.json({
       success: true,
       user: { id: result.user.id, email: result.user.email },

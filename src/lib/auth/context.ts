@@ -26,7 +26,7 @@ export async function requireAuthContext(): Promise<AuthContext> {
   const auth = await getAuthContext()
   if (!auth) {
     const { redirect } = await import('next/navigation')
-    redirect('/login')
+    return redirect('/login')
   }
   return auth
 }
