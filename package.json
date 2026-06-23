@@ -19,6 +19,7 @@
     "lambda:buildzip": "npm run build && npx payloadcms-figma build-lambda-zip"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.85",
     "@payloadcms/figma": "^0.0.1-alpha.68",
     "@payloadcms/next": "3.85.1",
     "@payloadcms/plugin-cloud-storage": "^3.85.1",
@@ -27,6 +28,7 @@
     "@phosphor-icons/react": "^2.1.10",
     "@tailwindcss/postcss": "^4.3.1",
     "@xyflow/react": "^12.11.0",
+    "ai": "^6.0.208",
     "clsx": "^2.1.1",
     "cross-env": "^7.0.3",
     "dagre": "^0.8.5",

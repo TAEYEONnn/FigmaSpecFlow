@@ -1,10 +1,10 @@
-import OpenAI from "openai";
-import { zodTextFormat } from "openai/helpers/zod";
+import { generateText, Output } from "ai";
+import { anthropic } from "@ai-sdk/anthropic";
 import { demoSpecDocument } from "@/lib/spec/demo-document";
 import { splitIntoChunks } from "@/lib/ai/cost-estimate";
 import { specDocumentSchema, type SpecDocument } from "@/lib/spec/schema";
 
-export const COMPILER_PROMPT_VERSION = "2026-06-21.v2";
+export const COMPILER_PROMPT_VERSION = "2026-06-21.v3";
 export type CompilerMode = "demo" | "live";
 export type CompileSpecDocumentOptions = {
   mode?: CompilerMode;
@@ -140,7 +140,7 @@ export async function compileSpecDocument(
 ): Promise<SpecDocument> {
   const mode =
     options.mode ??
-    (process.env.OPENAI_API_KEY || process.env.NODE_ENV === "production"
+    (process.env.ANTHROPIC_API_KEY || process.env.NODE_ENV === "production"
       ? "live"
       : "demo");
 
@@ -148,8 +148,8 @@ export async function compileSpecDocument(
     return structuredClone(demoSpecDocument);
   }
 
-  if (!process.env.OPENAI_API_KEY?.trim()) {
-    throw new Error("OPENAI_API_KEY 환경변수가 필요합니다.");
+  if (!process.env.ANTHROPIC_API_KEY?.trim()) {
+    throw new Error("ANTHROPIC_API_KEY 환경변수가 필요합니다.");
   }
 
   const chunks = splitIntoChunks(source);
@@ -163,31 +163,24 @@ export async function compileSpecDocument(
 }
 
 async function compileSingleChunk(source: string): Promise<SpecDocument> {
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const response = await client.responses.parse({
-    model: process.env.OPENAI_MODEL ?? "gpt-5.4",
-    input: [
-      {
-        role: "system",
-        content: [
-          "당신은 정확성과 추적 가능성을 최우선으로 하는 프로덕트 디자인 업무 컴파일러입니다.",
-          "제공된 spec_document 스키마를 엄격히 따르고 모든 필드를 반환하세요.",
-          "원문에 없는 사실을 확정하지 마세요.",
-          "AI가 최초 생성한 항목을 confirmed로 표시하지 마세요.",
-          "정보가 없는 nullable 필드는 null, 항목이 없는 배열은 []로 반환하세요.",
-        ].join(" "),
-      },
-      { role: "user", content: buildCompilerPrompt(source) },
-    ],
-    text: {
-      format: zodTextFormat(specDocumentSchema, "spec_document"),
-    },
+  const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
+  const { experimental_output } = await generateText({
+    model: anthropic(model),
+    output: Output.object({ schema: specDocumentSchema, name: "spec_document" }),
+    system: [
+      "당신은 정확성과 추적 가능성을 최우선으로 하는 프로덕트 디자인 업무 컴파일러입니다.",
+      "제공된 spec_document 스키마를 엄격히 따르고 모든 필드를 반환하세요.",
+      "원문에 없는 사실을 확정하지 마세요.",
+      "AI가 최초 생성한 항목을 confirmed로 표시하지 마세요.",
+      "정보가 없는 nullable 필드는 null, 항목이 없는 배열은 []로 반환하세요.",
+    ].join(" "),
+    prompt: buildCompilerPrompt(source),
   });
 
-  if (!response.output_parsed) {
+  if (!experimental_output) {
     throw new Error("AI가 구조화된 명세를 반환하지 않았습니다.");
   }
-  return specDocumentSchema.parse(response.output_parsed);
+  return specDocumentSchema.parse(experimental_output);
 }
 
 function dedupeById(arr: { id: string }[]): { id: string }[] {

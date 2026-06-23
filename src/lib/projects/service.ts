@@ -274,7 +274,7 @@ export async function createCompilationRun(projectId: string) {
       project: projectId,
       user: auth.userId,
       status: 'running',
-      model: process.env.OPENAI_MODEL ?? 'gpt-5.4',
+      model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
       promptVersion: COMPILER_PROMPT_VERSION,
     },
   })

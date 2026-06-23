@@ -1,5 +1,5 @@
-import OpenAI from "openai";
-import { zodTextFormat } from "openai/helpers/zod";
+import { generateText, Output } from "ai";
+import { anthropic } from "@ai-sdk/anthropic";
 import { z } from "zod";
 import type { FigmaLibrary, ComponentRecommendation, ScreenRecommendation } from "@/lib/figma/types";
 import type { Screen } from "@/lib/spec/schema";
@@ -60,10 +60,9 @@ export async function recommendFigmaComponents(
     return [];
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
   const useMock =
     process.env.NODE_ENV === "test" ||
-    !apiKey;
+    !process.env.ANTHROPIC_API_KEY;
 
   if (useMock) {
     return screens.map((screen) => ({
@@ -73,31 +72,22 @@ export async function recommendFigmaComponents(
     }));
   }
 
-  const client = new OpenAI({
-    apiKey,
-  });
+  const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
 
   const results = await Promise.all(
     screens.map(async (screen): Promise<ComponentRecommendation> => {
-      const response = await client.responses.parse({
-        model: process.env.OPENAI_MODEL ?? "gpt-5.4",
-        input: [
-          {
-            role: "system",
-            content: "JSON 스키마를 엄격히 따르세요. componentKey/componentName은 라이브러리에 실제로 존재하는 값만 사용하고, 없으면 null.",
-          },
-          { role: "user", content: buildFigmaPrompt(screen, library) },
-        ],
-        text: {
-          format: zodTextFormat(screenRecommendationSchema, "screen_recommendations"),
-        },
+      const { experimental_output } = await generateText({
+        model: anthropic(model),
+        output: Output.object({ schema: screenRecommendationSchema, name: "screen_recommendations" }),
+        system: "JSON 스키마를 엄격히 따르세요. componentKey/componentName은 라이브러리에 실제로 존재하는 값만 사용하고, 없으면 null.",
+        prompt: buildFigmaPrompt(screen, library),
       });
 
-      const parsed = response.output_parsed ?? { recommendations: [] };
+      const parsed = experimental_output ?? { recommendations: [] };
       return {
         screenId: screen.id,
         screenName: screen.name,
-        recommendations: parsed.recommendations as ScreenRecommendation[],
+        recommendations: (parsed.recommendations ?? []) as ScreenRecommendation[],
       };
     }),
   );
