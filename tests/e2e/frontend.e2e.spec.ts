@@ -17,21 +17,6 @@ test.describe('Frontend', () => {
   })
 
   test('navigates to projects after a successful login', async ({ page }) => {
-    await page.route('/api/auth/login', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ success: true }),
-      })
-    })
-    await page.route('/projects', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'text/html',
-        body: '<html><body><h1>프로젝트</h1></body></html>',
-      })
-    })
-
     await page.goto('http://localhost:3000/login')
     await page.getByLabel('아이디').fill('xodusrla@kakao.com')
     await page.getByLabel('비밀번호').fill('11111111')

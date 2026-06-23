@@ -2,7 +2,15 @@ import Link from "next/link";
 import { LoginForm } from "@/components/auth/login-form";
 import { isDevelopmentDemo } from "@/lib/env";
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>
+}) {
+  const { error } = await searchParams
+  const errorMessage =
+    error === 'invalid' ? '아이디 또는 비밀번호를 확인해 주세요.' : undefined
+
   return (
     <main className="login-page">
       <section className="login-panel">
@@ -23,7 +31,7 @@ export default function LoginPage() {
         <div className="login-card">
           <h2>로그인</h2>
           <p>작업공간 바로 가기</p>
-          <LoginForm isDemo={isDevelopmentDemo} />
+          <LoginForm error={errorMessage} isDemo={isDevelopmentDemo} />
           {isDevelopmentDemo ? (
             <p className="demo-note">
               개발 데모 계정: <strong>designer</strong> / <strong>specflow</strong>

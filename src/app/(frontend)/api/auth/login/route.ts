@@ -4,8 +4,15 @@ import { NextResponse } from 'next/server'
 import { AUTH_COOKIE_NAME, getAuthCookieOptions } from '@/lib/auth/cookie'
 
 export async function POST(request: Request) {
+  const contentType = request.headers.get('content-type') ?? ''
+  const isFormRequest =
+    contentType.includes('application/x-www-form-urlencoded') ||
+    contentType.includes('multipart/form-data')
+
   try {
-    const body = await request.json()
+    const body = isFormRequest
+      ? Object.fromEntries(await request.formData())
+      : await request.json()
     const email: string = (body.email ?? body.username ?? '').trim().toLowerCase()
     const password: string = body.password ?? ''
     const payload = await getPayload({ config })
@@ -16,16 +23,27 @@ export async function POST(request: Request) {
     })
 
     if (!result.user) {
+      if (isFormRequest) {
+        return new NextResponse(null, {
+          status: 303,
+          headers: { location: '/login?error=invalid' },
+        })
+      }
       return NextResponse.json(
         { success: false, error: 'Invalid credentials' },
         { status: 401 },
       )
     }
 
-    const response = NextResponse.json({
-      success: true,
-      user: { id: result.user.id, email: result.user.email },
-    })
+    const response = isFormRequest
+      ? new NextResponse(null, {
+          status: 303,
+          headers: { location: '/projects' },
+        })
+      : NextResponse.json({
+          success: true,
+          user: { id: result.user.id, email: result.user.email },
+        })
 
     // Set the Payload auth cookie
     if (result.token) {
@@ -38,6 +56,12 @@ export async function POST(request: Request) {
 
     return response
   } catch (error) {
+    if (isFormRequest) {
+      return new NextResponse(null, {
+        status: 303,
+        headers: { location: '/login?error=invalid' },
+      })
+    }
     return NextResponse.json(
       { success: false, error: 'Invalid credentials' },
       { status: 401 },
