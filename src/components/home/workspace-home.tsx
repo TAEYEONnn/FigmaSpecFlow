@@ -41,30 +41,36 @@ export function WorkspaceHome({
   const [quickTitle, setQuickTitle] = useState('')
   const [creating, setCreating] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
+  const [loadError, setLoadError] = useState('')
   const menuRef = useRef<HTMLDivElement>(null)
 
   const load = useCallback(async () => {
-    const requests: Promise<Response>[] = [
-      fetch('/api/tasks?personal=true', { credentials: 'include' }),
-    ]
-    if (activeTeam) {
-      requests.push(
-        fetch(`/api/tasks?teamId=${activeTeam.id}`, { credentials: 'include' }),
-        fetch(`/api/chat?teamId=${activeTeam.id}&limit=5`, { credentials: 'include' }),
-        fetch(`/api/notes?teamId=${activeTeam.id}`, { credentials: 'include' }),
-      )
-    }
-    const responses = await Promise.all(requests)
-    const data = await Promise.all(responses.map((r) => r.json()))
-    setPersonalTasks(data[0]?.tasks ?? [])
-    if (activeTeam) {
-      setTeamTasks(data[1]?.tasks ?? [])
-      setMessages([...(data[2]?.messages ?? [])].reverse())
-      setNotes(data[3]?.notes ?? [])
-    } else {
-      setTeamTasks([])
-      setMessages([])
-      setNotes([])
+    try {
+      setLoadError('')
+      const requests: Promise<Response>[] = [
+        fetch('/api/tasks?personal=true', { credentials: 'include' }),
+      ]
+      if (activeTeam) {
+        requests.push(
+          fetch(`/api/tasks?teamId=${activeTeam.id}`, { credentials: 'include' }),
+          fetch(`/api/chat?teamId=${activeTeam.id}&limit=5`, { credentials: 'include' }),
+          fetch(`/api/notes?teamId=${activeTeam.id}`, { credentials: 'include' }),
+        )
+      }
+      const responses = await Promise.all(requests)
+      const data = await Promise.all(responses.map((r) => r.json()))
+      setPersonalTasks(data[0]?.tasks ?? [])
+      if (activeTeam) {
+        setTeamTasks(data[1]?.tasks ?? [])
+        setMessages([...(data[2]?.messages ?? [])].reverse())
+        setNotes(data[3]?.notes ?? [])
+      } else {
+        setTeamTasks([])
+        setMessages([])
+        setNotes([])
+      }
+    } catch {
+      setLoadError('데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
     }
   }, [activeTeam])
 
@@ -141,6 +147,7 @@ export function WorkspaceHome({
 
   return (
     <main className="workspace-page home-dashboard">
+      {loadError && <p className="form-error" role="alert">{loadError}</p>}
       {/* 인사 + 빠른 생성 */}
       <header className="home-greeting">
         <div className="home-greeting-text">

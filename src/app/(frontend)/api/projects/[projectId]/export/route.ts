@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
-import { apiError } from "@/lib/api/response";
+import { AppError, apiError } from "@/lib/api/response";
 import {
   exportByTemplate,
   exportTemplateFileSuffix,
   type ExportTemplate,
 } from "@/lib/export/markdown";
 import { getProject } from "@/lib/projects/service";
+import { getAuthContext } from "@/lib/auth/context";
+import { requireProjectAccess } from "@/lib/access/project-scope";
 
 const validTemplates = new Set<ExportTemplate>([
   "full",
@@ -39,6 +41,11 @@ export async function GET(
 ) {
   try {
     const { projectId } = await params;
+    const auth = await getAuthContext();
+    if (!auth) throw new AppError("UNAUTHORIZED", "로그인이 필요합니다.");
+    await requireProjectAccess(projectId, auth.userId).catch(() => {
+      throw new AppError("FORBIDDEN", "이 프로젝트에 접근할 수 없습니다.");
+    });
     const project = await getProject(projectId);
 
     if (!project?.document) {

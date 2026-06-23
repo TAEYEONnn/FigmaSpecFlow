@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const redirectTo = next && next.startsWith('/') ? next : '/projects'
+    const redirectTo = next && next.startsWith('/') && !next.startsWith('//') ? next : '/projects'
     const response = isFormRequest
       ? new NextResponse(null, { status: 303, headers: { location: redirectTo } })
       : NextResponse.json({

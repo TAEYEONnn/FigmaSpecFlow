@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiError } from "@/lib/api/response";
+import { AppError, apiError } from "@/lib/api/response";
 import { archiveProject, deleteProject, getProject, moveProject, renameProject, unarchiveProject } from "@/lib/projects/service";
+import { getAuthContext } from "@/lib/auth/context";
+import { requireProjectAccess } from "@/lib/access/project-scope";
 
 export async function GET(
   _request: Request,
@@ -9,6 +11,11 @@ export async function GET(
 ) {
   try {
     const { projectId } = await params;
+    const auth = await getAuthContext();
+    if (!auth) throw new AppError("UNAUTHORIZED", "로그인이 필요합니다.");
+    await requireProjectAccess(projectId, auth.userId).catch(() => {
+      throw new AppError("FORBIDDEN", "이 프로젝트에 접근할 수 없습니다.");
+    });
     const project = await getProject(projectId);
     if (!project) {
       return NextResponse.json({ error: "프로젝트를 찾을 수 없습니다." }, { status: 404 });
@@ -31,6 +38,11 @@ export async function PATCH(
 ) {
   try {
     const { projectId } = await params;
+    const auth = await getAuthContext();
+    if (!auth) throw new AppError("UNAUTHORIZED", "로그인이 필요합니다.");
+    await requireProjectAccess(projectId, auth.userId).catch(() => {
+      throw new AppError("FORBIDDEN", "이 프로젝트에 접근할 수 없습니다.");
+    });
     const body = patchSchema.parse(await request.json());
     if (body.name !== undefined) await renameProject(projectId, body.name);
     if (body.teamId !== undefined) await moveProject(projectId, body.teamId);
@@ -51,6 +63,11 @@ export async function DELETE(
 ) {
   try {
     const { projectId } = await params;
+    const auth = await getAuthContext();
+    if (!auth) throw new AppError("UNAUTHORIZED", "로그인이 필요합니다.");
+    await requireProjectAccess(projectId, auth.userId).catch(() => {
+      throw new AppError("FORBIDDEN", "이 프로젝트에 접근할 수 없습니다.");
+    });
     await deleteProject(projectId);
     return NextResponse.json({ ok: true });
   } catch (error) {

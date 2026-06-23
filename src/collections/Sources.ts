@@ -1,14 +1,35 @@
-import type { CollectionConfig } from 'payload'
+import type { Access, CollectionConfig, Where } from 'payload'
+import { resolveRelationshipId } from '@/lib/access/relationships'
+
+async function projectTeamIds(req: Parameters<Access>[0]['req'], userId: string): Promise<string[]> {
+  const result = await req.payload.find({
+    collection: 'team-members',
+    where: { user: { equals: userId } },
+    limit: 100,
+    depth: 0,
+    req,
+  })
+  return result.docs
+    .map((m) => resolveRelationshipId(m.team))
+    .filter((id): id is string => Boolean(id))
+}
+
+const projectRead: Access = async ({ req }) => {
+  if (!req.user || req.user.collection !== 'accounts') return false
+  const userId = String(req.user.id)
+  const teamIds = await projectTeamIds(req, userId)
+  const where: Where = teamIds.length === 0
+    ? { 'project.owner': { equals: userId } }
+    : { or: [{ 'project.owner': { equals: userId } }, { 'project.team': { in: teamIds } }] }
+  return where
+}
 
 export const Sources: CollectionConfig = {
   slug: 'sources',
   timestamps: true,
   access: {
     create: ({ req }) => Boolean(req.user),
-    read: ({ req }) => {
-      if (!req.user) return false
-      return { 'project.owner': { equals: req.user.id } }
-    },
+    read: projectRead,
     update: ({ req }) => {
       if (!req.user) return false
       return { 'project.owner': { equals: req.user.id } }

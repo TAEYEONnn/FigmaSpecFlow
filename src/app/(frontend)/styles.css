@@ -1,5 +1,14 @@
 :root {
   --font-mono: 'Roboto Mono', monospace;
+  --base: 8px;
+  --ink-muted: #66737a;
+  --bg: #ffffff;
+  --fg: var(--ink);
+  --fg-muted: var(--muted);
+  --success: #18a66b;
+  --success-bg: #e8f8ec;
+  --info: #2779b4;
+  --info-bg: #eaf5ff;
 }
 
 * {
@@ -26,7 +35,7 @@ body {
   line-height: 32px;
 
   margin: 0;
-  color: rgb(1000, 1000, 1000);
+  color: var(--ink, #1a2127);
 
   @media (max-width: 1024px) {
     font-size: 15px;
@@ -128,15 +137,15 @@ svg {
     }
 
     .admin {
-      color: rgb(0, 0, 0);
-      background: rgb(1000, 1000, 1000);
-      border: 1px solid rgb(0, 0, 0);
+      color: #000000;
+      background: #ffffff;
+      border: 1px solid #000000;
     }
 
     .docs {
-      color: rgb(1000, 1000, 1000);
-      background: rgb(0, 0, 0);
-      border: 1px solid rgb(1000, 1000, 1000);
+      color: #ffffff;
+      background: #000000;
+      border: 1px solid #ffffff;
     }
   }
 
@@ -4233,4 +4242,20 @@ textarea:focus-visible {
 }
 .emoji-option:hover {
   background: var(--surface-2, #f0f0f0);
+}
+
+/* focus-visible */
+.global-nav-item:focus-visible,
+.nav-item:focus-visible,
+.home-project-row:focus-visible,
+.project-row:focus-visible,
+.team-switcher-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* mobile touch targets */
+@media (max-width: 600px) {
+  .home-quick-row .field,
+  .home-quick-row .button { min-height: 44px; }
 }

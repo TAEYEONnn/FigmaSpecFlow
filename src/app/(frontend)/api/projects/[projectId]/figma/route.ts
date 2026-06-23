@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiError } from "@/lib/api/response";
+import { AppError, apiError } from "@/lib/api/response";
 import { recommendFigmaComponents } from "@/lib/figma/recommend";
 import type { FigmaLibrary } from "@/lib/figma/types";
 import { getProject } from "@/lib/projects/service";
+import { getAuthContext } from "@/lib/auth/context";
+import { requireProjectAccess } from "@/lib/access/project-scope";
 
 const figmaVariantSchema = z.object({
   property: z.string(),
@@ -38,6 +40,11 @@ export async function POST(
 ) {
   try {
     const { projectId } = await params;
+    const auth = await getAuthContext();
+    if (!auth) throw new AppError("UNAUTHORIZED", "로그인이 필요합니다.");
+    await requireProjectAccess(projectId, auth.userId).catch(() => {
+      throw new AppError("FORBIDDEN", "이 프로젝트에 접근할 수 없습니다.");
+    });
     const project = await getProject(projectId);
     if (!project?.document) {
       return NextResponse.json({ error: "정리된 문서가 없습니다." }, { status: 404 });
