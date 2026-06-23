@@ -4,7 +4,9 @@ import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json()
+    const body = await request.json()
+    const email: string = (body.email ?? body.username ?? '').trim().toLowerCase()
+    const password: string = body.password ?? ''
     const payload = await getPayload({ config })
 
     const result = await payload.login({

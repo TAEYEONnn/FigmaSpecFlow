@@ -11,6 +11,8 @@ type ProjectSummary = {
   name: string;
   revision: number;
   updatedAt: string;
+  teamId?: string | null;
+  teamName?: string | null;
 };
 
 export function ProjectList({ projects }: { projects: ProjectSummary[] }) {
@@ -46,7 +48,12 @@ export function ProjectList({ projects }: { projects: ProjectSummary[] }) {
               <Link className="project-row" href={`/projects/${project.id}`}>
                 <div>
                   <strong>{project.name}</strong>
-                  <span>문서 버전 {project.revision}</span>
+                  <span>
+                    {project.teamName && (
+                      <span className="project-team-badge">{project.teamName}</span>
+                    )}
+                    문서 버전 {project.revision}
+                  </span>
                 </div>
                 <span>{formatKoreanDateTime(project.updatedAt)}</span>
                 <ArrowRight size={18} />

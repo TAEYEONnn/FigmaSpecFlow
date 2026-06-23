@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { LoginForm } from "@/components/auth/login-form";
 import { isDevelopmentDemo } from "@/lib/env";
 
@@ -28,6 +29,10 @@ export default function LoginPage() {
               개발 데모 계정: <strong>designer</strong> / <strong>specflow</strong>
             </p>
           ) : null}
+          <p style={{ textAlign: "center", marginTop: "12px", fontSize: "14px", color: "var(--fg-muted)" }}>
+            계정이 없나요?{" "}
+            <Link href="/signup" style={{ color: "var(--accent)" }}>계정 만들기</Link>
+          </p>
         </div>
       </section>
     </main>

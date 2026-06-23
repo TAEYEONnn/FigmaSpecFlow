@@ -1,7 +1,8 @@
-import { getPayload } from 'payload'
+import { getPayload, type Where } from 'payload'
 import config from '@payload-config'
 import { COMPILER_PROMPT_VERSION } from '@/lib/ai/compiler'
 import { requireAuthContext, type AuthContext } from '@/lib/auth/context'
+import { getMyTeamIds } from '@/lib/teams/service'
 import {
   addDemoSource,
   createDemoProject,
@@ -56,26 +57,41 @@ export async function listProjects() {
   if (auth.demo) return listDemoProjects()
 
   const payload = await getPayloadClient()
+  const teamIds = await getMyTeamIds()
+  const whereClause: Where = teamIds.length > 0
+    ? { or: [{ owner: { equals: auth.userId } }, { team: { in: teamIds } }] }
+    : { owner: { equals: auth.userId } }
+
   const result = await payload.find({
     collection: 'projects',
-    where: { owner: { equals: auth.userId } },
+    where: whereClause,
     sort: '-updatedAt',
+    depth: 1,
     limit: 100,
   })
 
-  return result.docs.map((doc) => ({
-    id: String(doc.id),
-    name: doc.name,
-    revision: doc.revision ?? 0,
-    needsRecompile: doc.needsRecompile ?? false,
-    document: null,
-    sources: [],
-    runs: [],
-    updatedAt: doc.updatedAt,
-  }))
+  return result.docs.map((doc) => {
+    const teamRel = doc.team as unknown
+    const teamId = teamRel && typeof teamRel === 'object' && 'id' in teamRel
+      ? String((teamRel as { id: unknown }).id) : null
+    const teamName = teamRel && typeof teamRel === 'object' && 'name' in teamRel
+      ? String((teamRel as { name: unknown }).name) : null
+    return {
+      id: String(doc.id),
+      name: doc.name,
+      revision: doc.revision ?? 0,
+      needsRecompile: doc.needsRecompile ?? false,
+      document: null,
+      sources: [],
+      runs: [],
+      updatedAt: doc.updatedAt,
+      teamId,
+      teamName,
+    }
+  })
 }
 
-export async function createProject(name: string) {
+export async function createProject(name: string, teamId?: string) {
   const auth = await requireAuthContext()
   if (auth.demo) return createDemoProject(name)
 
@@ -87,6 +103,7 @@ export async function createProject(name: string) {
       owner: auth.userId,
       revision: 0,
       needsRecompile: false,
+      ...(teamId ? { team: teamId } : {}),
     },
   })
 

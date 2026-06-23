@@ -75,6 +75,9 @@ export interface Config {
     'compilation-runs': CompilationRun;
     'project-documents': ProjectDocument;
     'login-attempts': LoginAttempt;
+    teams: Team;
+    'team-members': TeamMember;
+    'team-invitations': TeamInvitation;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -90,6 +93,9 @@ export interface Config {
     'compilation-runs': CompilationRunsSelect<false> | CompilationRunsSelect<true>;
     'project-documents': ProjectDocumentsSelect<false> | ProjectDocumentsSelect<true>;
     'login-attempts': LoginAttemptsSelect<false> | LoginAttemptsSelect<true>;
+    teams: TeamsSelect<false> | TeamsSelect<true>;
+    'team-members': TeamMembersSelect<false> | TeamMembersSelect<true>;
+    'team-invitations': TeamInvitationsSelect<false> | TeamInvitationsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -187,6 +193,7 @@ export interface Project {
   needsRecompile?: boolean | null;
   currentDocument?: (string | null) | ProjectDocument;
   owner: string | User;
+  team?: (string | null) | Team;
   updatedAt: string;
   createdAt: string;
 }
@@ -241,6 +248,17 @@ export interface CompilationRun {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teams".
+ */
+export interface Team {
+  id: string;
+  name: string;
+  owner: string | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sources".
  */
 export interface Source {
@@ -264,6 +282,34 @@ export interface LoginAttempt {
   attemptCount: number;
   windowStartedAt: string;
   blockedUntil?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team-members".
+ */
+export interface TeamMember {
+  id: string;
+  team: string | Team;
+  user: string | User;
+  role: 'owner' | 'member';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team-invitations".
+ */
+export interface TeamInvitation {
+  id: string;
+  team: string | Team;
+  email: string;
+  invitedBy: string | User;
+  role: 'owner' | 'member';
+  token: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  expiresAt: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -322,6 +368,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'login-attempts';
         value: string | LoginAttempt;
+      } | null)
+    | ({
+        relationTo: 'teams';
+        value: string | Team;
+      } | null)
+    | ({
+        relationTo: 'team-members';
+        value: string | TeamMember;
+      } | null)
+    | ({
+        relationTo: 'team-invitations';
+        value: string | TeamInvitation;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -415,6 +473,7 @@ export interface ProjectsSelect<T extends boolean = true> {
   needsRecompile?: T;
   currentDocument?: T;
   owner?: T;
+  team?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -472,6 +531,42 @@ export interface LoginAttemptsSelect<T extends boolean = true> {
   attemptCount?: T;
   windowStartedAt?: T;
   blockedUntil?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teams_select".
+ */
+export interface TeamsSelect<T extends boolean = true> {
+  name?: T;
+  owner?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team-members_select".
+ */
+export interface TeamMembersSelect<T extends boolean = true> {
+  team?: T;
+  user?: T;
+  role?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team-invitations_select".
+ */
+export interface TeamInvitationsSelect<T extends boolean = true> {
+  team?: T;
+  email?: T;
+  invitedBy?: T;
+  role?: T;
+  token?: T;
+  status?: T;
+  expiresAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

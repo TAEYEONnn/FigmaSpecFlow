@@ -3075,3 +3075,135 @@ textarea:focus-visible {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* ── Team & Signup styles ─────────────────────────────────── */
+
+.button-sm {
+  min-height: 32px;
+  padding: 4px 12px;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.header-team-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  padding: 0 16px;
+}
+
+.project-team-badge {
+  display: inline-block;
+  background: var(--accent, #0066ff);
+  color: #fff;
+  font-size: 11px;
+  line-height: 16px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  margin-right: 6px;
+  font-weight: 500;
+  vertical-align: middle;
+}
+
+/* Team settings page */
+.team-settings {
+  max-width: 640px;
+}
+
+.team-settings-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 40px;
+}
+
+.team-section {
+  margin-bottom: 48px;
+}
+
+.team-section h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.member-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--surface-soft, #f8fafa);
+}
+
+.member-email {
+  flex: 1;
+  font-size: 14px;
+}
+
+.member-role {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.member-role--owner {
+  background: #e8f4ff;
+  color: #0066cc;
+}
+
+.member-role--member {
+  background: #f0f0f0;
+  color: #555;
+}
+
+.member-role--pending {
+  background: #fff8e8;
+  color: #996600;
+}
+
+.invite-form {
+  display: flex;
+  gap: 8px;
+}
+
+.invite-form .field {
+  flex: 1;
+}
+
+.invite-link-box {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--surface-soft, #f8fafa);
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+.invite-link-box p {
+  font-size: 14px;
+  margin-bottom: 10px;
+  color: var(--fg-muted);
+}
+
+.invite-link-row {
+  display: flex;
+  gap: 8px;
+}
+
+.invite-link-row .field {
+  flex: 1;
+  font-size: 13px;
+  font-family: var(--font-mono);
+}
