@@ -1,5 +1,5 @@
 import { generateText, Output } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
+import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 import type { FigmaLibrary, ComponentRecommendation, ScreenRecommendation } from "@/lib/figma/types";
 import type { Screen } from "@/lib/spec/schema";
@@ -62,7 +62,7 @@ export async function recommendFigmaComponents(
 
   const useMock =
     process.env.NODE_ENV === "test" ||
-    !process.env.ANTHROPIC_API_KEY;
+    !process.env.OPENAI_API_KEY;
 
   if (useMock) {
     return screens.map((screen) => ({
@@ -72,12 +72,12 @@ export async function recommendFigmaComponents(
     }));
   }
 
-  const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
+  const model = process.env.OPENAI_MODEL ?? "gpt-5.4-mini";
 
   const results = await Promise.all(
     screens.map(async (screen): Promise<ComponentRecommendation> => {
       const { experimental_output } = await generateText({
-        model: anthropic(model),
+        model: openai(model),
         output: Output.object({ schema: screenRecommendationSchema, name: "screen_recommendations" }),
         system: "JSON 스키마를 엄격히 따르세요. componentKey/componentName은 라이브러리에 실제로 존재하는 값만 사용하고, 없으면 null.",
         prompt: buildFigmaPrompt(screen, library),

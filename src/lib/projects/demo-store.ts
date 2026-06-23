@@ -54,7 +54,7 @@ function createSeedProject(name: string, json: unknown): DemoProject {
   const run: DemoRun = {
     id: randomUUID(),
     status: "completed",
-    model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
+    model: process.env.OPENAI_MODEL ?? "gpt-5.4-mini",
     promptVersion: COMPILER_PROMPT_VERSION,
     durationMs: 0,
     createdAt: now,
@@ -139,7 +139,7 @@ export function createDemoRun(projectId: string) {
   const run: DemoRun = {
     id: randomUUID(),
     status: "running",
-    model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
+    model: process.env.OPENAI_MODEL ?? "gpt-5.4-mini",
     promptVersion: COMPILER_PROMPT_VERSION,
     createdAt: new Date().toISOString(),
   };

@@ -163,7 +163,7 @@ export async function compileSpecDocument(
 }
 
 async function compileSingleChunk(source: string): Promise<SpecDocument> {
-  const model = process.env.OPENAI_MODEL ?? "gpt-4o";
+  const model = process.env.OPENAI_MODEL ?? "gpt-5.4-mini";
   const { experimental_output } = await generateText({
     model: openai(model),
     output: Output.object({ schema: specDocumentSchema, name: "spec_document" }),
