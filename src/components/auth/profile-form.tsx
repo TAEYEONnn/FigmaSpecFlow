@@ -1,8 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 export function ProfileForm({ initialDisplayName, email }: { initialDisplayName: string; email: string }) {
+  const router = useRouter();
   const [displayName, setDisplayName] = useState(initialDisplayName);
   const [nameError, setNameError] = useState("");
   const [namePending, setNamePending] = useState(false);
@@ -30,6 +32,7 @@ export function ProfileForm({ initialDisplayName, email }: { initialDisplayName:
       const data = await res.json();
       if (!res.ok) { setNameError(data.error ?? "저장하지 못했어요."); return; }
       setNameSuccess(true);
+      router.refresh();
     } catch {
       setNameError("네트워크 연결을 확인해 주세요.");
     } finally {

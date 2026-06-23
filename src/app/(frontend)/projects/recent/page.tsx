@@ -11,7 +11,7 @@ export default async function RecentProjectsPage() {
   return (
     <main className="workspace-page">
       <header className="workspace-page-header">
-        <p>프로젝트</p>
+        <p><Link href="/projects">← 프로젝트 목록</Link></p>
         <h1>최근 프로젝트</h1>
         <span>최근 수정한 프로젝트부터 이어서 작업하세요.</span>
       </header>

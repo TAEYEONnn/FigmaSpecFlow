@@ -14,12 +14,15 @@ function MessageText({ content }: { content: string }) {
   )
 }
 
+const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🎉']
+
 export function ChatRoom() {
   const { activeTeam, loading: teamLoading } = useActiveTeam()
   const [messages, setMessages] = useState<ChatMessageView[]>([])
   const [content, setContent] = useState('')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
+  const [emojiPickerFor, setEmojiPickerFor] = useState<string | null>(null)
   const latestId = useRef<string | null>(null)
 
   const load = useCallback(async (incremental = false) => {
@@ -78,6 +81,7 @@ export function ChatRoom() {
   }
 
   async function react(messageId: string, emoji: string) {
+    setEmojiPickerFor(null)
     const response = await fetch(`/api/chat/${messageId}/reactions`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -86,6 +90,11 @@ export function ChatRoom() {
     })
     const data = await response.json()
     if (response.ok) setMessages((current) => current.map((message) => message.id === messageId ? data.message : message))
+  }
+
+  function togglePicker(event: React.MouseEvent, messageId: string) {
+    event.stopPropagation()
+    setEmojiPickerFor((prev) => (prev === messageId ? null : messageId))
   }
 
   if (!teamLoading && !activeTeam) {
@@ -98,19 +107,27 @@ export function ChatRoom() {
         {messages.length === 0 ? (
           <div className="workspace-empty">팀에 아직 올라온 이야기가 없어요.<br />먼저 한마디 남겨보세요.</div>
         ) : messages.map((message) => (
-          <article className="chat-message" key={message.id}>
-            <div className="chat-avatar">{message.authorEmail.slice(0, 1).toUpperCase()}</div>
+          <article className="chat-message" key={message.id} onClick={() => setEmojiPickerFor(null)}>
+            <div className="chat-avatar">{(message.authorName || message.authorEmail).slice(0, 1).toUpperCase()}</div>
             <div>
-              <header><strong>{message.authorEmail}</strong><time>{new Date(message.createdAt).toLocaleString('ko-KR')}</time></header>
+              <header><strong>{message.authorName || message.authorEmail}</strong><time>{new Date(message.createdAt).toLocaleString('ko-KR')}</time></header>
               <MessageText content={message.content} />
               <div className="reaction-row">
                 {message.reactions.map((reaction) => (
-                  <button key={reaction.emoji} onClick={() => react(message.id, reaction.emoji)}>
+                  <button key={reaction.emoji} className="reaction-btn" onClick={() => react(message.id, reaction.emoji)}>
                     {reaction.emoji} {reaction.userIds.length}
                   </button>
                 ))}
-                <button onClick={() => react(message.id, '👍')}>+ 👍</button>
-                <button onClick={() => react(message.id, '❤️')}>+ ❤️</button>
+                <div className="emoji-picker-wrap">
+                  <button className="reaction-add-btn" onClick={(e) => togglePicker(e, message.id)} aria-label="반응 추가">+</button>
+                  {emojiPickerFor === message.id && (
+                    <div className="emoji-picker">
+                      {QUICK_EMOJIS.map((emoji) => (
+                        <button key={emoji} className="emoji-option" onClick={() => react(message.id, emoji)}>{emoji}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </article>

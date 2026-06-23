@@ -55,14 +55,29 @@ export function TaskBoard({ personal = false }: { personal?: boolean }) {
   }
 
   async function toggle(task: WorkspaceTaskView) {
+    const nextStatus = task.status === 'done' ? 'todo' : 'done'
+    setTasks((current) => current.map((item) => item.id === task.id ? { ...item, status: nextStatus } : item))
     const response = await fetch(`/api/tasks/${task.id}`, {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ status: task.status === 'done' ? 'todo' : 'done' }),
+      body: JSON.stringify({ status: nextStatus }),
     })
     const data = await response.json()
     if (response.ok) setTasks((current) => current.map((item) => item.id === task.id ? data.task : item))
+    else setTasks((current) => current.map((item) => item.id === task.id ? { ...item, status: task.status } : item))
+  }
+
+  async function updatePriority(task: WorkspaceTaskView, priority: string) {
+    const prev = task.priority
+    setTasks((current) => current.map((item) => item.id === task.id ? { ...item, priority: priority as WorkspaceTaskView['priority'] } : item))
+    const response = await fetch(`/api/tasks/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ priority }),
+    })
+    if (!response.ok) setTasks((current) => current.map((item) => item.id === task.id ? { ...item, priority: prev } : item))
   }
 
   async function remove(id: string) {
@@ -99,8 +114,18 @@ export function TaskBoard({ personal = false }: { personal?: boolean }) {
             >{task.status === 'done' ? '✓' : ''}</button>
             <div className="workspace-list-copy">
               <strong>{task.title}</strong>
-              <span>{task.priority} · {task.status}</span>
+              <span>{task.status}</span>
             </div>
+            <select
+              className="priority-select"
+              value={task.priority}
+              onChange={(event) => updatePriority(task, event.target.value)}
+              aria-label="중요도"
+            >
+              <option value="low">낮음</option>
+              <option value="medium">보통</option>
+              <option value="high">높음</option>
+            </select>
             <button className="icon-action icon-action--danger" onClick={() => remove(task.id)}>삭제</button>
           </article>
         ))}

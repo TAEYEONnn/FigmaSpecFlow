@@ -84,6 +84,16 @@ export function NotesWorkspace({ personal = false }: { personal?: boolean }) {
     if (response.ok) setNotes((current) => current.map((note) => note.id === id ? data.note : note))
   }
 
+  async function deleteNote(id: string) {
+    if (!window.confirm('이 메모를 삭제할까요?')) return
+    const response = await fetch(`/api/notes/${id}`, { method: 'DELETE', credentials: 'include' })
+    if (response.ok) {
+      setNotes((current) => current.filter((note) => note.id !== id))
+      if (selectedId === id) setSelectedId(null)
+      if (scratchId.current === id) { scratchId.current = null; setScratch('') }
+    }
+  }
+
   async function convert(id: string, target: 'note' | 'task') {
     const response = await fetch(`/api/notes/${id}/convert`, {
       method: 'POST',
@@ -113,7 +123,7 @@ export function NotesWorkspace({ personal = false }: { personal?: boolean }) {
           value={scratch}
           onChange={(event) => scheduleScratch(event.target.value)}
           placeholder="무슨 생각을 하고 있나요?"
-          aria-label="빠른 낙서"
+          aria-label="빠른 메모"
         />
         <span className="autosave-state">{saving ? '저장 중…' : scratchId.current ? '자동 저장됨' : '입력하면 자동 저장돼요'}</span>
         {scratchId.current && (
@@ -126,7 +136,7 @@ export function NotesWorkspace({ personal = false }: { personal?: boolean }) {
         <div className="workspace-list">
           {notes.map((note) => (
             <button className="note-row" key={note.id} onClick={() => setSelectedId(note.id)}>
-              <strong>{note.title || '제목 없는 낙서'}</strong>
+              <strong>{note.title || '빠른 메모'}</strong>
               <span>{note.content.slice(0, 70) || '내용을 입력하세요.'}</span>
             </button>
           ))}
@@ -136,13 +146,16 @@ export function NotesWorkspace({ personal = false }: { personal?: boolean }) {
       <section className="note-editor">
         {selected ? (
           <>
-            <input
-              className="note-title-input"
-              value={selected.title ?? ''}
-              onChange={(event) => setNotes((current) => current.map((note) => note.id === selected.id ? { ...note, title: event.target.value } : note))}
-              onBlur={(event) => updateNote(selected.id, { title: event.target.value })}
-              placeholder="메모 제목"
-            />
+            <div className="note-editor-header">
+              <input
+                className="note-title-input"
+                value={selected.title ?? ''}
+                onChange={(event) => setNotes((current) => current.map((note) => note.id === selected.id ? { ...note, title: event.target.value } : note))}
+                onBlur={(event) => updateNote(selected.id, { title: event.target.value })}
+                placeholder="메모 제목"
+              />
+              <button className="icon-action icon-action--danger" onClick={() => deleteNote(selected.id)}>삭제</button>
+            </div>
             <textarea
               className="note-content-input"
               value={selected.content}

@@ -21,6 +21,7 @@ export type ChatMessageView = {
   content: string
   authorId: string
   authorEmail: string
+  authorName: string
   parentMessageId: string | null
   reactions: { emoji: string; userIds: string[] }[]
   createdAt: string
@@ -68,6 +69,7 @@ function mapMessage(doc: ChatMessage): ChatMessageView {
     content: doc.content ?? '',
     authorId: resolveRelationshipId(doc.author) ?? '',
     authorEmail: resolveField(doc.author, 'email'),
+    authorName: resolveField(doc.author, 'displayName') || resolveField(doc.author, 'email'),
     parentMessageId: doc.parentMessage ? resolveId(doc.parentMessage) : null,
     reactions,
     createdAt: typeof doc.createdAt === 'string' ? doc.createdAt : '',
@@ -184,11 +186,15 @@ export async function addReaction(messageId: string, emoji: string): Promise<Cha
     const users: string[] = Array.isArray(rawReactions[idx].users)
       ? rawReactions[idx].users.map((u) => u.userId ?? '').filter(Boolean)
       : []
-    if (!users.includes(auth.userId)) {
-      rawReactions[idx] = {
-        ...rawReactions[idx],
-        users: [...users, auth.userId].map((userId) => ({ userId })),
+    if (users.includes(auth.userId)) {
+      const nextUsers = users.filter((uid) => uid !== auth.userId)
+      if (nextUsers.length === 0) {
+        rawReactions.splice(idx, 1)
+      } else {
+        rawReactions[idx] = { ...rawReactions[idx], users: nextUsers.map((userId) => ({ userId })) }
       }
+    } else {
+      rawReactions[idx] = { ...rawReactions[idx], users: [...users, auth.userId].map((userId) => ({ userId })) }
     }
   } else {
     rawReactions.push({ emoji: input.emoji, users: [{ userId: auth.userId }] })
