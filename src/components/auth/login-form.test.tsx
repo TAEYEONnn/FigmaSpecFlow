@@ -3,21 +3,12 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LoginForm } from "@/components/auth/login-form";
 
-const push = vi.fn();
-const refresh = vi.fn();
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push, refresh }),
-}));
-
 vi.mock("@/lib/auth/storage-access", () => ({
   ensureBrowserStorageAccess: vi.fn().mockResolvedValue(true),
 }));
 
 describe("LoginForm", () => {
   beforeEach(() => {
-    push.mockReset();
-    refresh.mockReset();
     vi.stubGlobal("fetch", vi.fn());
   });
 
@@ -156,8 +147,9 @@ describe("LoginForm", () => {
     expect(signupLinks).toHaveLength(0);
   });
 
-  it("navigates once on success without refreshing", async () => {
+  it("starts a full document navigation after successful login", async () => {
     const user = userEvent.setup();
+    const assign = vi.spyOn(window.location, "assign").mockImplementation(() => undefined);
     vi.mocked(fetch).mockResolvedValue(
       new Response(JSON.stringify({ redirectTo: "/projects" }), {
         status: 200,
@@ -170,8 +162,7 @@ describe("LoginForm", () => {
     await user.type(screen.getByLabelText("비밀번호"), "specflow");
     await user.click(screen.getByRole("button", { name: "로그인" }));
 
-    expect(push).toHaveBeenCalledOnce();
-    expect(push).toHaveBeenCalledWith("/projects");
-    expect(refresh).not.toHaveBeenCalled();
+    expect(assign).toHaveBeenCalledOnce();
+    expect(assign).toHaveBeenCalledWith("/projects");
   });
 });

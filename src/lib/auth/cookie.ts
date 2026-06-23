@@ -11,19 +11,6 @@ export const AUTH_COOKIE_OPTIONS: Partial<ResponseCookie> = {
   path: '/',
 }
 
-// Used only to clear the legacy Partitioned cookie that was set by old deployments.
-// Browsers treat Partitioned cookies as a separate identity from non-Partitioned cookies,
-// so we must expire them with the same Partitioned attribute they were created with.
-export const LEGACY_PARTITIONED_CLEAR_OPTIONS: Partial<ResponseCookie> = {
-  httpOnly: true,
-  secure: true,
-  sameSite: 'none',
-  path: '/',
-  partitioned: true,
-  maxAge: 0,
-  expires: new Date(0),
-}
-
 /** @deprecated use AUTH_COOKIE_OPTIONS directly */
 export function getAuthCookieOptions(_isProduction: boolean): Partial<ResponseCookie> {
   return AUTH_COOKIE_OPTIONS

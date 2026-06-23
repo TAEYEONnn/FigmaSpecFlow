@@ -1,7 +1,7 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { NextResponse } from 'next/server'
-import { AUTH_COOKIE_NAME, AUTH_COOKIE_OPTIONS, LEGACY_PARTITIONED_CLEAR_OPTIONS } from '@/lib/auth/cookie'
+import { AUTH_COOKIE_NAME, AUTH_COOKIE_OPTIONS } from '@/lib/auth/cookie'
 
 export async function POST(request: Request) {
   const contentType = request.headers.get('content-type') ?? ''
@@ -32,6 +32,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 })
     }
 
+    if (!result.token) {
+      if (isFormRequest) {
+        const errorBase = next
+          ? `/login?error=session&next=${encodeURIComponent(next)}`
+          : '/login?error=session'
+        return new NextResponse(null, { status: 303, headers: { location: errorBase } })
+      }
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'AUTH_TOKEN_NOT_ISSUED',
+          message: '로그인 세션을 만들지 못했어요.',
+        },
+        { status: 500 },
+      )
+    }
+
     const redirectTo = next && next.startsWith('/') ? next : '/projects'
     const response = isFormRequest
       ? new NextResponse(null, { status: 303, headers: { location: redirectTo } })
@@ -41,10 +58,7 @@ export async function POST(request: Request) {
           redirectTo,
         })
 
-    if (result.token) {
-      response.cookies.set(AUTH_COOKIE_NAME, result.token, AUTH_COOKIE_OPTIONS)
-      response.cookies.set(AUTH_COOKIE_NAME, '', LEGACY_PARTITIONED_CLEAR_OPTIONS)
-    }
+    response.cookies.set(AUTH_COOKIE_NAME, result.token, AUTH_COOKIE_OPTIONS)
 
     return response
   } catch (error) {

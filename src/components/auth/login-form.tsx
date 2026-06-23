@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ensureBrowserStorageAccess } from "@/lib/auth/storage-access";
 
@@ -11,7 +10,6 @@ export function LoginForm({
   isDemo?: boolean;
   next?: string;
 }) {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -42,7 +40,7 @@ export function LoginForm({
           : next && next.startsWith("/")
             ? next
             : "/projects";
-      router.push(redirectTo);
+      window.location.assign(redirectTo);
     } catch {
       setError("네트워크 연결을 확인해 주세요.");
     } finally {
