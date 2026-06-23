@@ -1,12 +1,18 @@
 import type { CollectionConfig } from 'payload'
+import { chatMessageAccess } from '@/lib/access/workspace-collections'
 
 const ChatMessages: CollectionConfig = {
   slug: 'chat-messages',
-  access: {
-    read: ({ req }) => !!req.user,
-    create: ({ req }) => !!req.user,
-    update: ({ req }) => !!req.user,
-    delete: ({ req }) => !!req.user,
+  access: chatMessageAccess,
+  hooks: {
+    beforeChange: [
+      ({ data, operation, req }) => {
+        if (operation === 'create' && req.user?.collection === 'accounts') {
+          data.author = req.user.id
+        }
+        return data
+      },
+    ],
   },
   fields: [
     { name: 'content', type: 'textarea', required: true },

@@ -399,6 +399,7 @@ export interface Note {
   team?: (string | null) | Team;
   project?: (string | null) | Project;
   createdBy: string | Account;
+  updatedBy: string | Account;
   pinned?: boolean | null;
   tags?:
     | {
@@ -773,6 +774,7 @@ export interface NotesSelect<T extends boolean = true> {
   team?: T;
   project?: T;
   createdBy?: T;
+  updatedBy?: T;
   pinned?: T;
   tags?:
     | T

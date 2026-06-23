@@ -1,12 +1,19 @@
 import type { CollectionConfig } from 'payload'
+import { noteAccess } from '@/lib/access/workspace-collections'
 
 const Notes: CollectionConfig = {
   slug: 'notes',
-  access: {
-    read: ({ req }) => !!req.user,
-    create: ({ req }) => !!req.user,
-    update: ({ req }) => !!req.user,
-    delete: ({ req }) => !!req.user,
+  access: noteAccess,
+  hooks: {
+    beforeChange: [
+      ({ data, operation, req }) => {
+        if (!req.user || req.user.collection !== 'accounts') return data
+        if (operation === 'create') data.createdBy = req.user.id
+        data.updatedBy = req.user.id
+        if (data.visibility === 'personal') data.team = null
+        return data
+      },
+    ],
   },
   fields: [
     { name: 'title', type: 'text' },
@@ -25,7 +32,8 @@ const Notes: CollectionConfig = {
     },
     { name: 'team', type: 'relationship', relationTo: 'teams' },
     { name: 'project', type: 'relationship', relationTo: 'projects' },
-    { name: 'createdBy', type: 'relationship', relationTo: 'accounts', required: true },
+    { name: 'createdBy', type: 'relationship', relationTo: 'accounts', required: true, admin: { readOnly: true } },
+    { name: 'updatedBy', type: 'relationship', relationTo: 'accounts', required: true, admin: { readOnly: true } },
     { name: 'pinned', type: 'checkbox', defaultValue: false },
     { name: 'tags', type: 'array', fields: [{ name: 'tag', type: 'text' }] },
   ],

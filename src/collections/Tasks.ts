@@ -1,16 +1,21 @@
 import type { CollectionConfig } from 'payload'
+import { taskAccess } from '@/lib/access/workspace-collections'
 
 const Tasks: CollectionConfig = {
   slug: 'tasks',
-  access: {
-    read: ({ req }) => {
-      if (!req.user) return false
-      // Will be filtered by service layer based on teamId/authorId
-      return true
-    },
-    create: ({ req }) => !!req.user,
-    update: ({ req }) => !!req.user,
-    delete: ({ req }) => !!req.user,
+  access: taskAccess,
+  hooks: {
+    beforeChange: [
+      ({ data, operation, req }) => {
+        if (!req.user || req.user.collection !== 'accounts') return data
+        if (operation === 'create') data.createdBy = req.user.id
+        if (data.isPersonal) {
+          data.team = null
+          data.assignee = req.user.id
+        }
+        return data
+      },
+    ],
   },
   fields: [
     { name: 'title', type: 'text', required: true },
@@ -34,7 +39,7 @@ const Tasks: CollectionConfig = {
     { name: 'team', type: 'relationship', relationTo: 'teams' },
     { name: 'project', type: 'relationship', relationTo: 'projects' },
     { name: 'assignee', type: 'relationship', relationTo: 'accounts' },
-    { name: 'createdBy', type: 'relationship', relationTo: 'accounts', required: true },
+    { name: 'createdBy', type: 'relationship', relationTo: 'accounts', required: true, admin: { readOnly: true } },
   ],
   timestamps: true,
 }
