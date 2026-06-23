@@ -25,7 +25,7 @@ export const Profiles: CollectionConfig = {
     {
       name: 'user',
       type: 'relationship',
-      relationTo: 'users',
+      relationTo: 'accounts',
       required: true,
       unique: true,
       index: true,

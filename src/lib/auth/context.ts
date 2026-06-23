@@ -14,7 +14,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   const { user } = await payload.auth({
     headers: new Headers(Object.fromEntries(headersList.entries())),
   })
-  if (!user) return null
+  if (!user || user.collection !== 'accounts') return null
   return {
     userId: String(user.id),
     username: (user.email as string) ?? 'designer',

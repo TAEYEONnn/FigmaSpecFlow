@@ -34,7 +34,7 @@ export const Projects: CollectionConfig = {
     {
       name: 'owner',
       type: 'relationship',
-      relationTo: 'users',
+      relationTo: 'accounts',
       required: true,
       admin: {
         hidden: true,

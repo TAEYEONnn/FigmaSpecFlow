@@ -12,7 +12,7 @@ export const TeamInvitations: CollectionConfig = {
   fields: [
     { name: 'team', type: 'relationship', relationTo: 'teams', required: true },
     { name: 'email', type: 'email', required: true },
-    { name: 'invitedBy', type: 'relationship', relationTo: 'users', required: true },
+    { name: 'invitedBy', type: 'relationship', relationTo: 'accounts', required: true },
     {
       name: 'role',
       type: 'select',

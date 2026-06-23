@@ -64,10 +64,12 @@ export type SupportedTimezones =
 export interface Config {
   auth: {
     users: UserAuthOperations;
+    accounts: AccountAuthOperations;
   };
   blocks: {};
   collections: {
     users: User;
+    accounts: Account;
     profiles: Profile;
     media: Media;
     projects: Project;
@@ -86,6 +88,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
+    accounts: AccountsSelect<false> | AccountsSelect<true>;
     profiles: ProfilesSelect<false> | ProfilesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
@@ -111,13 +114,31 @@ export interface Config {
   widgets: {
     collections: CollectionsWidget;
   };
-  user: User;
+  user: User | Account;
   jobs: {
     tasks: unknown;
     workflows: unknown;
   };
 }
 export interface UserAuthOperations {
+  forgotPassword: {
+    email: string;
+    password: string;
+  };
+  login: {
+    email: string;
+    password: string;
+  };
+  registerFirstUser: {
+    email: string;
+    password: string;
+  };
+  unlock: {
+    email: string;
+    password: string;
+  };
+}
+export interface AccountAuthOperations {
   forgotPassword: {
     email: string;
     password: string;
@@ -153,11 +174,36 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "accounts".
+ */
+export interface Account {
+  id: string;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'accounts';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "profiles".
  */
 export interface Profile {
   id: string;
-  user: string | User;
+  user: string | Account;
   username: string;
   internalEmail: string;
   updatedAt: string;
@@ -192,7 +238,7 @@ export interface Project {
   revision?: number | null;
   needsRecompile?: boolean | null;
   currentDocument?: (string | null) | ProjectDocument;
-  owner: string | User;
+  owner: string | Account;
   team?: (string | null) | Team;
   updatedAt: string;
   createdAt: string;
@@ -204,7 +250,7 @@ export interface Project {
 export interface ProjectDocument {
   id: string;
   project: string | Project;
-  user?: (string | null) | User;
+  user?: (string | null) | Account;
   revision: number;
   document:
     | {
@@ -226,7 +272,7 @@ export interface ProjectDocument {
 export interface CompilationRun {
   id: string;
   project: string | Project;
-  user?: (string | null) | User;
+  user?: (string | null) | Account;
   status: 'queued' | 'running' | 'completed' | 'failed';
   model?: string | null;
   promptVersion?: string | null;
@@ -253,7 +299,7 @@ export interface CompilationRun {
 export interface Team {
   id: string;
   name: string;
-  owner: string | User;
+  owner: string | Account;
   updatedAt: string;
   createdAt: string;
 }
@@ -264,7 +310,7 @@ export interface Team {
 export interface Source {
   id: string;
   project: string | Project;
-  user?: (string | null) | User;
+  user?: (string | null) | Account;
   name?: string | null;
   sourceType?: ('paste' | 'txt' | 'md' | 'pdf') | null;
   content?: string | null;
@@ -292,7 +338,7 @@ export interface LoginAttempt {
 export interface TeamMember {
   id: string;
   team: string | Team;
-  user: string | User;
+  user: string | Account;
   role: 'owner' | 'member';
   updatedAt: string;
   createdAt: string;
@@ -305,7 +351,7 @@ export interface TeamInvitation {
   id: string;
   team: string | Team;
   email: string;
-  invitedBy: string | User;
+  invitedBy: string | Account;
   role: 'owner' | 'member';
   token: string;
   status: 'pending' | 'accepted' | 'rejected';
@@ -340,6 +386,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: string | User;
+      } | null)
+    | ({
+        relationTo: 'accounts';
+        value: string | Account;
       } | null)
     | ({
         relationTo: 'profiles';
@@ -382,10 +432,15 @@ export interface PayloadLockedDocument {
         value: string | TeamInvitation;
       } | null);
   globalSlug?: string | null;
-  user: {
-    relationTo: 'users';
-    value: string | User;
-  };
+  user:
+    | {
+        relationTo: 'users';
+        value: string | User;
+      }
+    | {
+        relationTo: 'accounts';
+        value: string | Account;
+      };
   updatedAt: string;
   createdAt: string;
 }
@@ -395,10 +450,15 @@ export interface PayloadLockedDocument {
  */
 export interface PayloadPreference {
   id: string;
-  user: {
-    relationTo: 'users';
-    value: string | User;
-  };
+  user:
+    | {
+        relationTo: 'users';
+        value: string | User;
+      }
+    | {
+        relationTo: 'accounts';
+        value: string | Account;
+      };
   key?: string | null;
   value?:
     | {
@@ -433,6 +493,28 @@ export interface UsersSelect<T extends boolean = true> {
   email?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "accounts_select".
+ */
+export interface AccountsSelect<T extends boolean = true> {
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

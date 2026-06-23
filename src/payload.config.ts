@@ -2,6 +2,7 @@ import path from 'path'
 import { buildFigmaConfig } from '@payloadcms/figma'
 import { fileURLToPath } from 'url'
 import { Users } from './collections/Users'
+import { Accounts } from './collections/Accounts'
 import { Media } from './collections/Media'
 import { Projects } from './collections/Projects'
 import { Sources } from './collections/Sources'
@@ -25,6 +26,7 @@ export default buildFigmaConfig({
   },
   collections: [
     Users,
+    Accounts,
     Profiles,
     Media,
     Projects,

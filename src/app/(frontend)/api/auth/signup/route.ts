@@ -16,13 +16,13 @@ export async function POST(request: Request) {
     const payload = await getPayload({ config })
 
     const user = await payload.create({
-      collection: 'users',
+      collection: 'accounts',
       // Payload auth collections accept password at runtime but TS types omit it
       data: { email: email.trim().toLowerCase(), password } as { email: string },
     })
 
     const loginResult = await payload.login({
-      collection: 'users',
+      collection: 'accounts',
       data: { email: email.trim().toLowerCase(), password },
     })
 

@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     const payload = await getPayload({ config })
 
     const result = await payload.login({
-      collection: 'users',
+      collection: 'accounts',
       data: { email, password },
     })
 

@@ -11,7 +11,7 @@ export const TeamMembers: CollectionConfig = {
   },
   fields: [
     { name: 'team', type: 'relationship', relationTo: 'teams', required: true },
-    { name: 'user', type: 'relationship', relationTo: 'users', required: true },
+    { name: 'user', type: 'relationship', relationTo: 'accounts', required: true },
     {
       name: 'role',
       type: 'select',

@@ -29,7 +29,7 @@ export const Sources: CollectionConfig = {
     {
       name: 'user',
       type: 'relationship',
-      relationTo: 'users',
+      relationTo: 'accounts',
       index: true,
       admin: {
         hidden: true,
