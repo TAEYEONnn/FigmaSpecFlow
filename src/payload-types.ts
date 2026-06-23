@@ -80,6 +80,9 @@ export interface Config {
     teams: Team;
     'team-members': TeamMember;
     'team-invitations': TeamInvitation;
+    tasks: Task;
+    notes: Note;
+    'chat-messages': ChatMessage;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -99,6 +102,9 @@ export interface Config {
     teams: TeamsSelect<false> | TeamsSelect<true>;
     'team-members': TeamMembersSelect<false> | TeamMembersSelect<true>;
     'team-invitations': TeamInvitationsSelect<false> | TeamInvitationsSelect<true>;
+    tasks: TasksSelect<false> | TasksSelect<true>;
+    notes: NotesSelect<false> | NotesSelect<true>;
+    'chat-messages': ChatMessagesSelect<false> | ChatMessagesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -363,6 +369,75 @@ export interface TeamInvitation {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tasks".
+ */
+export interface Task {
+  id: string;
+  title: string;
+  description?: string | null;
+  status: 'todo' | 'inProgress' | 'done';
+  priority: 'low' | 'medium' | 'high';
+  dueDate?: string | null;
+  isPersonal: boolean;
+  team?: (string | null) | Team;
+  project?: (string | null) | Project;
+  assignee?: (string | null) | Account;
+  createdBy: string | Account;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notes".
+ */
+export interface Note {
+  id: string;
+  title?: string | null;
+  content?: string | null;
+  kind: 'note' | 'scratch';
+  visibility: 'personal' | 'team';
+  team?: (string | null) | Team;
+  project?: (string | null) | Project;
+  createdBy: string | Account;
+  pinned?: boolean | null;
+  tags?:
+    | {
+        tag?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-messages".
+ */
+export interface ChatMessage {
+  id: string;
+  content: string;
+  team: string | Team;
+  author: string | Account;
+  parentMessage?: (string | null) | ChatMessage;
+  reactions?:
+    | {
+        emoji?: string | null;
+        count?: number | null;
+        users?:
+          | {
+              userId?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  editedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -432,6 +507,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'team-invitations';
         value: string | TeamInvitation;
+      } | null)
+    | ({
+        relationTo: 'tasks';
+        value: string | Task;
+      } | null)
+    | ({
+        relationTo: 'notes';
+        value: string | Note;
+      } | null)
+    | ({
+        relationTo: 'chat-messages';
+        value: string | ChatMessage;
       } | null);
   globalSlug?: string | null;
   user:
@@ -653,6 +740,72 @@ export interface TeamInvitationsSelect<T extends boolean = true> {
   token?: T;
   status?: T;
   expiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tasks_select".
+ */
+export interface TasksSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  status?: T;
+  priority?: T;
+  dueDate?: T;
+  isPersonal?: T;
+  team?: T;
+  project?: T;
+  assignee?: T;
+  createdBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notes_select".
+ */
+export interface NotesSelect<T extends boolean = true> {
+  title?: T;
+  content?: T;
+  kind?: T;
+  visibility?: T;
+  team?: T;
+  project?: T;
+  createdBy?: T;
+  pinned?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-messages_select".
+ */
+export interface ChatMessagesSelect<T extends boolean = true> {
+  content?: T;
+  team?: T;
+  author?: T;
+  parentMessage?: T;
+  reactions?:
+    | T
+    | {
+        emoji?: T;
+        count?: T;
+        users?:
+          | T
+          | {
+              userId?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  editedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

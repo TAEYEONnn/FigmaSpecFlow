@@ -13,6 +13,9 @@ import { LoginAttempts } from './collections/LoginAttempts'
 import { Teams } from './collections/Teams'
 import { TeamMembers } from './collections/TeamMembers'
 import { TeamInvitations } from './collections/TeamInvitations'
+import Tasks from './collections/Tasks'
+import Notes from './collections/Notes'
+import ChatMessages from './collections/ChatMessages'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -37,6 +40,9 @@ export default buildFigmaConfig({
     Teams,
     TeamMembers,
     TeamInvitations,
+    Tasks,
+    Notes,
+    ChatMessages,
   ],
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
