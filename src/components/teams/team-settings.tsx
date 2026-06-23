@@ -8,7 +8,7 @@ type Invitation = { id: string; email: string; role: "owner" | "member"; token: 
 
 export function TeamSettings({
   teamId,
-  teamName,
+  teamName: initialTeamName,
   ownerId,
   myUserId,
   initialMembers,
@@ -28,7 +28,39 @@ export function TeamSettings({
   const [inviteError, setInviteError] = useState("");
   const [invitePending, setInvitePending] = useState(false);
   const [inviteLink, setInviteLink] = useState("");
+
+  // Team rename state
+  const [teamName, setTeamName] = useState(initialTeamName);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState(initialTeamName);
+  const [renameError, setRenameError] = useState("");
+  const [renamePending, setRenamePending] = useState(false);
+
   const isOwner = myUserId === ownerId;
+
+  async function handleRename(event: FormEvent) {
+    event.preventDefault();
+    const trimmed = renameValue.trim();
+    if (!trimmed || trimmed === teamName) { setIsRenaming(false); return; }
+    setRenamePending(true);
+    setRenameError("");
+    try {
+      const res = await fetch(`/api/teams/${teamId}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name: trimmed }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setRenameError(data.error ?? "이름을 바꾸지 못했어요."); return; }
+      setTeamName(trimmed);
+      setIsRenaming(false);
+      router.refresh();
+    } catch {
+      setRenameError("네트워크 연결을 확인해 주세요.");
+    } finally {
+      setRenamePending(false);
+    }
+  }
 
   async function handleInvite(event: FormEvent) {
     event.preventDefault();
@@ -69,9 +101,51 @@ export function TeamSettings({
     }
   }
 
+  async function handleCancelInvitation(invitationId: string) {
+    if (!confirm("이 초대를 취소할까요?")) return;
+    const res = await fetch(`/api/teams/${teamId}/invitations/${invitationId}`, { method: "DELETE" });
+    if (res.ok) {
+      setInvitations((prev) => prev.filter((inv) => inv.id !== invitationId));
+    }
+  }
+
   return (
     <div className="team-settings">
-      <h1 className="team-settings-title">{teamName}</h1>
+      {isRenaming ? (
+        <form className="rename-form" onSubmit={handleRename}>
+          <input
+            className="field rename-field"
+            value={renameValue}
+            autoFocus
+            maxLength={100}
+            onChange={(e) => setRenameValue(e.target.value)}
+            disabled={renamePending}
+          />
+          <button className="button button-primary button-sm" type="submit" disabled={renamePending}>
+            {renamePending ? "저장 중…" : "저장"}
+          </button>
+          <button
+            className="button button-ghost button-sm"
+            type="button"
+            onClick={() => { setIsRenaming(false); setRenameValue(teamName); setRenameError(""); }}
+          >
+            취소
+          </button>
+          {renameError && <p className="form-error">{renameError}</p>}
+        </form>
+      ) : (
+        <div className="team-title-row">
+          <h1 className="team-settings-title">{teamName}</h1>
+          {isOwner && (
+            <button
+              className="button button-ghost button-sm"
+              onClick={() => { setRenameValue(teamName); setIsRenaming(true); }}
+            >
+              이름 수정
+            </button>
+          )}
+        </div>
+      )}
 
       <section className="team-section">
         <h2>멤버 ({members.length}명)</h2>
@@ -139,6 +213,14 @@ export function TeamSettings({
               <li key={inv.id} className="member-item">
                 <span className="member-email">{inv.email}</span>
                 <span className="member-role member-role--pending">대기 중</span>
+                {isOwner && (
+                  <button
+                    className="button button-ghost button-sm"
+                    onClick={() => handleCancelInvitation(inv.id)}
+                  >
+                    취소
+                  </button>
+                )}
               </li>
             ))}
           </ul>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { TeamSettings } from "@/components/teams/team-settings";
@@ -24,6 +25,7 @@ export default async function TeamPage({ params }: { params: Promise<{ teamId: s
           <span className="brand-mark" aria-hidden />
           <span>SpecFlow OS</span>
         </div>
+        <Link className="button button-ghost button-sm" href="/profile">프로필</Link>
         <LogoutButton />
       </header>
       <section className="projects-main">

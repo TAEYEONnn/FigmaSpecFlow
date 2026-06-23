@@ -15,6 +15,8 @@ export async function POST(request: Request) {
       : await request.json()
     const email: string = (body.email ?? body.username ?? '').trim().toLowerCase()
     const password: string = body.password ?? ''
+    // next: redirect destination after login (used by invitation flow etc.)
+    const next: string = typeof body.next === 'string' ? body.next : ''
     const payload = await getPayload({ config })
 
     const result = await payload.login({
@@ -24,45 +26,31 @@ export async function POST(request: Request) {
 
     if (!result.user) {
       if (isFormRequest) {
-        return new NextResponse(null, {
-          status: 303,
-          headers: { location: '/login?error=invalid' },
-        })
+        const errorBase = next ? `/login?error=invalid&next=${encodeURIComponent(next)}` : '/login?error=invalid'
+        return new NextResponse(null, { status: 303, headers: { location: errorBase } })
       }
-      return NextResponse.json(
-        { success: false, error: 'Invalid credentials' },
-        { status: 401 },
-      )
+      return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 })
     }
 
+    const redirectTo = next && next.startsWith('/') ? next : '/projects'
     const response = isFormRequest
-      ? new NextResponse(null, {
-          status: 303,
-          headers: { location: '/projects' },
-        })
+      ? new NextResponse(null, { status: 303, headers: { location: redirectTo } })
       : NextResponse.json({
           success: true,
           user: { id: result.user.id, email: result.user.email },
+          redirectTo,
         })
 
     if (result.token) {
-      // Set the canonical auth cookie
       response.cookies.set(AUTH_COOKIE_NAME, result.token, AUTH_COOKIE_OPTIONS)
-      // Clear any legacy Partitioned cookie from old deployments
       response.cookies.set(AUTH_COOKIE_NAME, '', LEGACY_PARTITIONED_CLEAR_OPTIONS)
     }
 
     return response
   } catch (error) {
     if (isFormRequest) {
-      return new NextResponse(null, {
-        status: 303,
-        headers: { location: '/login?error=invalid' },
-      })
+      return new NextResponse(null, { status: 303, headers: { location: '/login?error=invalid' } })
     }
-    return NextResponse.json(
-      { success: false, error: 'Invalid credentials' },
-      { status: 401 },
-    )
+    return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 })
   }
 }

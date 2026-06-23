@@ -26,5 +26,11 @@ export const Accounts: CollectionConfig = {
       return { id: { equals: req.user.id } }
     },
   },
-  fields: [],
+  fields: [
+    {
+      name: 'displayName',
+      type: 'text',
+      label: '표시 이름',
+    },
+  ],
 }

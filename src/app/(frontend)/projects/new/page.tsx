@@ -1,12 +1,25 @@
+import Link from "next/link";
 import { NewProjectForm } from "@/components/projects/new-project-form";
+import { listMyTeams } from "@/lib/teams/service";
 
-export default function NewProjectPage() {
+export default async function NewProjectPage() {
+  const teams = await listMyTeams().catch(() => []);
+
   return (
     <main className="projects-page">
+      <header className="projects-header">
+        <div className="brand">
+          <span className="brand-mark" aria-hidden />
+          <span>SpecFlow OS</span>
+        </div>
+        <Link className="button button-ghost button-sm" href="/projects">
+          ← 프로젝트 목록
+        </Link>
+      </header>
       <section className="new-project-shell">
         <h1>새 프로젝트 정리</h1>
         <p>회의록이나 메모를 그대로 넣어도 괜찮아요. 근거와 추론을 나눠서 정리해요.</p>
-        <NewProjectForm />
+        <NewProjectForm teams={teams} />
       </section>
     </main>
   );

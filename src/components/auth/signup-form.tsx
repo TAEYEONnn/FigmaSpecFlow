@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { ensureBrowserStorageAccess } from "@/lib/auth/storage-access";
 
-export function SignupForm() {
+export function SignupForm({ next }: { next?: string }) {
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -37,7 +37,8 @@ export function SignupForm() {
         setError(data.error ?? "계정을 만들지 못했어요.");
         return;
       }
-      window.location.assign("/projects");
+      const redirectTo = next && next.startsWith("/") ? next : "/projects";
+      window.location.assign(redirectTo);
     } catch {
       setError("네트워크 연결을 확인해 주세요.");
     } finally {
@@ -91,7 +92,7 @@ export function SignupForm() {
       </button>
       <p style={{ textAlign: "center", marginTop: "12px", fontSize: "14px", color: "var(--fg-muted)" }}>
         이미 계정이 있나요?{" "}
-        <Link href="/login" style={{ color: "var(--accent)" }}>로그인</Link>
+        <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"} style={{ color: "var(--accent)" }}>로그인</Link>
       </p>
     </form>
   );

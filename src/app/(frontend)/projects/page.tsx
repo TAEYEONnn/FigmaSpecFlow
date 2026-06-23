@@ -21,6 +21,7 @@ export default async function ProjectsPage() {
           ))}
           <Link className="button button-ghost button-sm" href="/teams/new">+ 팀</Link>
         </nav>
+        <Link className="button button-ghost button-sm" href="/profile">프로필</Link>
         <LogoutButton />
       </header>
       <section className="projects-main">

@@ -59,6 +59,20 @@ export async function createTeam(name: string): Promise<TeamView> {
   return { id: String(team.id), name: team.name, ownerId: auth.userId, myRole: 'owner' }
 }
 
+export async function renameTeam(teamId: string, name: string): Promise<void> {
+  const auth = await requireAuthContext()
+  const payload = await getPayloadClient()
+
+  const ownerCheck = await payload.find({
+    collection: 'team-members',
+    where: { and: [{ team: { equals: teamId } }, { user: { equals: auth.userId } }, { role: { equals: 'owner' } }] },
+    limit: 1,
+  })
+  if (ownerCheck.totalDocs === 0) throw new Error('팀 소유자만 이름을 변경할 수 있습니다.')
+
+  await payload.update({ collection: 'teams', id: teamId, data: { name } })
+}
+
 export async function listMyTeams(): Promise<TeamView[]> {
   const auth = await requireAuthContext()
   const payload = await getPayloadClient()
@@ -127,7 +141,7 @@ export async function inviteMember(
   teamId: string,
   email: string,
   role: 'owner' | 'member' = 'member',
-): Promise<{ token: string; email: string }> {
+): Promise<{ token: string; email: string; expiresAt: string; id: string }> {
   const auth = await requireAuthContext()
   const payload = await getPayloadClient()
 
@@ -137,6 +151,22 @@ export async function inviteMember(
     limit: 1,
   })
   if (ownerCheck.totalDocs === 0) throw new Error('팀 소유자만 초대할 수 있습니다.')
+
+  // 가입된 계정인지 확인
+  const account = await payload.find({
+    collection: 'accounts',
+    where: { email: { equals: email } },
+    limit: 1,
+  })
+  if (account.totalDocs === 0) throw new Error('등록된 계정이 없는 이메일이에요. 먼저 가입을 안내해 주세요.')
+
+  // 이미 팀 멤버인지 확인
+  const alreadyMember = await payload.find({
+    collection: 'team-members',
+    where: { and: [{ team: { equals: teamId } }, { user: { equals: String(account.docs[0].id) } }] },
+    limit: 1,
+  })
+  if (alreadyMember.totalDocs > 0) throw new Error('이미 팀 멤버인 사용자예요.')
 
   const existing = await payload.find({
     collection: 'team-invitations',
@@ -148,12 +178,29 @@ export async function inviteMember(
   const token = randomUUID()
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
 
-  await payload.create({
+  const inv = await payload.create({
     collection: 'team-invitations',
     data: { team: teamId, email, invitedBy: auth.userId, role, token, status: 'pending', expiresAt },
   })
 
-  return { token, email }
+  return { token, email, expiresAt, id: String(inv.id) }
+}
+
+export async function cancelInvitation(invitationId: string): Promise<void> {
+  const auth = await requireAuthContext()
+  const payload = await getPayloadClient()
+
+  const inv = await payload.findByID({ collection: 'team-invitations', id: invitationId })
+  const teamId = resolveId(inv.team)
+
+  const ownerCheck = await payload.find({
+    collection: 'team-members',
+    where: { and: [{ team: { equals: teamId } }, { user: { equals: auth.userId } }, { role: { equals: 'owner' } }] },
+    limit: 1,
+  })
+  if (ownerCheck.totalDocs === 0) throw new Error('팀 소유자만 초대를 취소할 수 있습니다.')
+
+  await payload.delete({ collection: 'team-invitations', id: invitationId })
 }
 
 export async function getInvitation(token: string): Promise<InvitationView> {

@@ -1,6 +1,12 @@
 import { SignupForm } from "@/components/auth/signup-form";
 
-export default function SignupPage() {
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>
+}) {
+  const { next } = await searchParams;
+
   return (
     <main className="login-page">
       <section className="login-panel">
@@ -21,7 +27,7 @@ export default function SignupPage() {
         <div className="login-card">
           <h2>계정 만들기</h2>
           <p>무료로 시작해요</p>
-          <SignupForm />
+          <SignupForm next={next} />
         </div>
       </section>
     </main>

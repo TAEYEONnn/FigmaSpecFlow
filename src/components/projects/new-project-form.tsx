@@ -13,10 +13,13 @@ function sourceType(fileName: string): "pdf" | "md" | "txt" {
   return "txt";
 }
 
-export function NewProjectForm() {
+type Team = { id: string; name: string };
+
+export function NewProjectForm({ teams = [] }: { teams?: Team[] }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [name, setName] = useState("리디자인 프로젝트 (MVP)");
+  const [name, setName] = useState("새 프로젝트");
+  const [teamId, setTeamId] = useState("");
   const [content, setContent] = useState("");
   const [fileName, setFileName] = useState("");
   const [fileSize, setFileSize] = useState<number | undefined>();
@@ -37,7 +40,6 @@ export function NewProjectForm() {
     const isPdfFile = file.name.toLowerCase().endsWith(".pdf");
     setIsPdf(isPdfFile);
     if (isPdfFile) {
-      // PDF: send as base64 to server for extraction
       const arrayBuffer = await file.arrayBuffer();
       const bytes = new Uint8Array(arrayBuffer);
       let binary = "";
@@ -57,7 +59,7 @@ export function NewProjectForm() {
       const projectResponse = await fetch("/api/projects", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, teamId: teamId || undefined }),
       });
       const projectData = await projectResponse.json();
       if (!projectResponse.ok) throw new Error(projectData.error);
@@ -95,8 +97,24 @@ export function NewProjectForm() {
     <form className="source-form" onSubmit={handleSubmit}>
       <label className="field-label">
         프로젝트 이름
-        <input className="field" value={name} maxLength={100} onChange={(event) => setName(event.target.value)} />
+        <input className="field" value={name} maxLength={100} onChange={(event) => setName(event.target.value)} required />
       </label>
+      {teams.length > 0 && (
+        <label className="field-label">
+          팀 (선택)
+          <select
+            className="field"
+            value={teamId}
+            onChange={(e) => setTeamId(e.target.value)}
+            disabled={step !== "idle"}
+          >
+            <option value="">개인 프로젝트</option>
+            {teams.map((t) => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
+        </label>
+      )}
       <label className="field-label">
         원문
         <textarea

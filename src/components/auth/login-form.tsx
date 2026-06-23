@@ -1,9 +1,11 @@
 export function LoginForm({
   error,
   isDemo = false,
+  next,
 }: {
   error?: string
   isDemo?: boolean
+  next?: string
 }) {
   return (
     <form
@@ -11,6 +13,7 @@ export function LoginForm({
       className="login-form"
       method="post"
     >
+      {next && <input type="hidden" name="next" value={next} />}
       {isDemo ? (
         <p className="login-mode-badge" role="status">
           데모 모드

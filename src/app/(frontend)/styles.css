@@ -3207,3 +3207,57 @@ textarea:focus-visible {
   font-size: 13px;
   font-family: var(--font-mono);
 }
+
+/* Team rename */
+.team-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.team-title-row .team-settings-title {
+  margin-bottom: 0;
+}
+
+.rename-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.rename-field {
+  max-width: 320px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* Profile page */
+.profile-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  max-width: 480px;
+}
+
+.profile-section h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.profile-section form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-success {
+  font-size: 14px;
+  color: #00804a;
+  margin: 0;
+}
