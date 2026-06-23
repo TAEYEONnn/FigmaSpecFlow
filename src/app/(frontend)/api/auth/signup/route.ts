@@ -1,7 +1,7 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { NextResponse } from 'next/server'
-import { AUTH_COOKIE_NAME, getAuthCookieOptions } from '@/lib/auth/cookie'
+import { AUTH_COOKIE_NAME, AUTH_COOKIE_OPTIONS } from '@/lib/auth/cookie'
 
 export async function POST(request: Request) {
   try {
@@ -33,11 +33,7 @@ export async function POST(request: Request) {
     })
 
     if (loginResult.token) {
-      response.cookies.set(
-        AUTH_COOKIE_NAME,
-        loginResult.token,
-        getAuthCookieOptions(process.env.NODE_ENV === 'production'),
-      )
+      response.cookies.set(AUTH_COOKIE_NAME, loginResult.token, AUTH_COOKIE_OPTIONS)
     }
 
     return response

@@ -1,7 +1,7 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { NextResponse } from 'next/server'
-import { AUTH_COOKIE_NAME, getAuthCookieOptions } from '@/lib/auth/cookie'
+import { AUTH_COOKIE_NAME, AUTH_COOKIE_OPTIONS, LEGACY_PARTITIONED_CLEAR_OPTIONS } from '@/lib/auth/cookie'
 
 export async function POST(request: Request) {
   const contentType = request.headers.get('content-type') ?? ''
@@ -45,13 +45,11 @@ export async function POST(request: Request) {
           user: { id: result.user.id, email: result.user.email },
         })
 
-    // Set the Payload auth cookie
     if (result.token) {
-      response.cookies.set(
-        AUTH_COOKIE_NAME,
-        result.token,
-        getAuthCookieOptions(process.env.NODE_ENV === 'production'),
-      )
+      // Set the canonical auth cookie
+      response.cookies.set(AUTH_COOKIE_NAME, result.token, AUTH_COOKIE_OPTIONS)
+      // Clear any legacy Partitioned cookie from old deployments
+      response.cookies.set(AUTH_COOKIE_NAME, '', LEGACY_PARTITIONED_CLEAR_OPTIONS)
     }
 
     return response
