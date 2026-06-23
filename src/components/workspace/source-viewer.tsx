@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ClipboardText, FileText, PencilSimple, Plus, TextAlignLeft, Trash } from "@phosphor-icons/react";
+import { ArrowsClockwise, ClipboardText, FileText, PencilSimple, Plus, TextAlignLeft, Trash } from "@phosphor-icons/react";
 import { formatKoreanDateTime } from "@/lib/format-date";
 
 export type ProjectSource = {
@@ -48,9 +48,14 @@ export function SourceViewer({
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const replaceFileInputRef = useRef<HTMLInputElement>(null);
+  const [replacingId, setReplacingId] = useState<string | null>(null);
+  const [replaceText, setReplaceText] = useState("");
+  const [replacing, setReplacing] = useState(false);
+  const [replaceError, setReplaceError] = useState("");
 
   async function handleDelete(id: string, name: string) {
-    if (!window.confirm(`"${name}" 원문을 삭제할까요? 삭제하면 되돌릴 수 없어요.`)) return;
+    if (!window.confirm(`"${name}" 원문을 삭제할까요?\n현재 정리 결과는 유지되지만 삭제된 원문 기준이 돼요.`)) return;
     setDeleting(id);
     onBusyChange?.(true);
     setSaveError("");
@@ -70,6 +75,93 @@ export function SourceViewer({
       );
     } finally {
       setDeleting(null);
+      onBusyChange?.(false);
+    }
+  }
+
+  function startReplace(source: ProjectSource) {
+    setReplacingId(source.id);
+    setReplaceText("");
+    setReplaceError("");
+    setEditingId(null);
+    setExpanded(null);
+  }
+
+  function cancelReplace() {
+    setReplacingId(null);
+    setReplaceText("");
+    setReplaceError("");
+  }
+
+  async function handleReplaceWithText(id: string) {
+    if (!replaceText.trim()) { setReplaceError("새 원문 내용을 입력해 주세요."); return; }
+    setReplacing(true);
+    onBusyChange?.(true);
+    setReplaceError("");
+    try {
+      const res = await fetch(`/api/projects/${projectId}/sources/${id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: sources.find((s) => s.id === id)?.name ?? "원문",
+          content: replaceText,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        onSourcesChange(sources.map((s) => (s.id === id ? { ...s, ...data.source } : s)));
+        cancelReplace();
+        onSourceChange?.();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setReplaceError(data.error ?? "교체하지 못했어요.");
+      }
+    } catch {
+      setReplaceError("교체하지 못했어요.");
+    } finally {
+      setReplacing(false);
+      onBusyChange?.(false);
+    }
+  }
+
+  async function handleReplaceWithFile(id: string, file: File) {
+    setReplacing(true);
+    onBusyChange?.(true);
+    setReplaceError("");
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+      const type = (["txt", "md", "pdf"].includes(ext) ? ext : "txt") as "txt" | "md" | "pdf";
+      const isPdf = type === "pdf";
+      const content = isPdf
+        ? btoa(
+            Array.from(new Uint8Array(await file.arrayBuffer()))
+              .map((b) => String.fromCharCode(b))
+              .join(""),
+          )
+        : await file.text().catch(() => "");
+      const res = await fetch(`/api/projects/${projectId}/sources/${id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: file.name,
+          content,
+          fileSize: file.size,
+          isPdfBase64: isPdf,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        onSourcesChange(sources.map((s) => (s.id === id ? { ...s, ...data.source } : s)));
+        cancelReplace();
+        onSourceChange?.();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setReplaceError(data.error ?? "교체하지 못했어요.");
+      }
+    } catch {
+      setReplaceError("교체하지 못했어요.");
+    } finally {
+      setReplacing(false);
       onBusyChange?.(false);
     }
   }
@@ -273,6 +365,17 @@ export function SourceViewer({
           <p className="source-add-status">파일을 업로드하는 중…</p>
         </div>
       )}
+      <input
+        ref={replaceFileInputRef}
+        type="file"
+        accept=".txt,.md,.pdf"
+        style={{ display: "none" }}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file && replacingId) handleReplaceWithFile(replacingId, file);
+          e.target.value = "";
+        }}
+      />
 
       {addError && addMode === "file" && !adding && (
         <p className="source-add-error">{addError}</p>
@@ -289,7 +392,10 @@ export function SourceViewer({
       ) : (
         <div className="source-list">
           {sources.map((source) => (
-            <div className={`source-item${editingId === source.id ? " source-item--editing" : ""}`} key={source.id}>
+            <div
+              className={`source-item${editingId === source.id ? " source-item--editing" : ""}${replacingId === source.id ? " source-item--replacing" : ""}`}
+              key={source.id}
+            >
               <div className="source-item-header">
                 <FileText size={16} className="source-file-icon" />
                 {editingId === source.id ? (
@@ -315,11 +421,7 @@ export function SourceViewer({
                   {editingId === source.id ? (
                     <>
                       {saveError && <span className="source-save-error">{saveError}</span>}
-                      <button
-                        className="button"
-                        onClick={cancelEdit}
-                        disabled={saving}
-                      >
+                      <button className="button" onClick={cancelEdit} disabled={saving}>
                         취소
                       </button>
                       <button
@@ -330,14 +432,25 @@ export function SourceViewer({
                         {saving ? "저장 중…" : "저장"}
                       </button>
                     </>
+                  ) : replacingId === source.id ? (
+                    <>
+                      {replaceError && <span className="source-save-error">{replaceError}</span>}
+                      <button className="button" onClick={cancelReplace} disabled={replacing}>
+                        취소
+                      </button>
+                    </>
                   ) : (
                     <>
                       {source.type !== "pdf" && (
                         <button className="button" onClick={() => startEdit(source)}>
                           <PencilSimple size={15} />
-                          편집
+                          수정
                         </button>
                       )}
+                      <button className="button" onClick={() => startReplace(source)}>
+                        <ArrowsClockwise size={15} />
+                        교체
+                      </button>
                       <button
                         className="button"
                         onClick={() => setExpanded(expanded === source.id ? null : source.id)}
@@ -357,7 +470,41 @@ export function SourceViewer({
                   )}
                 </div>
               </div>
-              {(expanded === source.id || editingId === source.id) && (
+              {replacingId === source.id && (
+                <div className="source-replace-panel">
+                  <p className="source-replace-hint">
+                    새 원문을 입력해 주세요. 저장하기 전까지 기존 원문은 유지돼요.
+                  </p>
+                  <textarea
+                    className="source-add-textarea"
+                    placeholder="새 원문 내용을 붙여넣거나 직접 입력하세요."
+                    value={replaceText}
+                    onChange={(e) => setReplaceText(e.target.value)}
+                    autoFocus
+                    disabled={replacing}
+                  />
+                  {replaceError && <p className="source-add-error">{replaceError}</p>}
+                  <div className="source-add-footer">
+                    <button
+                      className="button"
+                      type="button"
+                      disabled={replacing}
+                      onClick={() => replaceFileInputRef.current?.click()}
+                    >
+                      <FileText size={15} />
+                      파일로 교체
+                    </button>
+                    <button
+                      className="button button-primary"
+                      onClick={() => handleReplaceWithText(source.id)}
+                      disabled={replacing || !replaceText.trim()}
+                    >
+                      {replacing ? "교체 중…" : "원문 교체"}
+                    </button>
+                  </div>
+                </div>
+              )}
+              {!replacingId && (expanded === source.id || editingId === source.id) && (
                 editingId === source.id ? (
                   <textarea
                     className="source-preview source-preview--edit"

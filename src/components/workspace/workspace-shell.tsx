@@ -134,6 +134,7 @@ export function WorkspaceShell({
   } = useWorkspacePreferences();
   const [needsRecompile, setNeedsRecompile] = useState(project.needsRecompile ?? false);
   const [compileStep, setCompileStep] = useState<CompileStep>("idle");
+  const hasSources = sources.some((s) => s.content?.trim());
   const [compileStartedAt, setCompileStartedAt] = useState<number | null>(null);
   const [compileElapsed, setCompileElapsed] = useState(0);
   const [sourceOperationCount, setSourceOperationCount] = useState(0);
@@ -491,6 +492,12 @@ export function WorkspaceShell({
       setError("원문 저장이 끝난 뒤 다시 정리해 주세요.");
       return;
     }
+    if (!hasSources) {
+      setError("다시 정리하려면 원문을 먼저 입력해 주세요.");
+      setView("sources");
+      setActiveNav("sources");
+      return;
+    }
     if (!window.confirm("원문 변경사항을 반영해서 다시 정리할까요? 직접 수정한 답변과 작업은 유지해요.")) return;
     try {
       await queueDocumentSave(documentRef.current);
@@ -742,10 +749,14 @@ export function WorkspaceShell({
           <div className="header-actions">
             {needsRecompile && (
               <span className="recompile-banner">
-                원문이 변경되었어요.
-                <button className="button button-primary button--sm" disabled={pending || sourcePending} onClick={recompile}>
+                {hasSources ? "원문이 변경되었어요." : "원문이 없어요. 원문을 추가하면 다시 정리할 수 있어요."}
+                <button
+                  className="button button-primary button--sm"
+                  disabled={sourcePending || (compileStep !== "idle" && compileStep !== "completed" && compileStep !== "failed")}
+                  onClick={recompile}
+                >
                   <ArrowClockwise size={13} />
-                  다시 정리하기
+                  {hasSources ? "다시 정리하기" : "원문 추가하기"}
                 </button>
               </span>
             )}
@@ -753,7 +764,9 @@ export function WorkspaceShell({
               <span className={`status-dot${pending ? " status-dot--pending" : ""}`} />
               {compileStep !== "idle" && compileStep !== "completed"
                 ? compileStepLabel[compileStep]
-                : note || `정리 완료 · 버전 ${revision}`}
+                : needsRecompile && !note
+                  ? `최신 원문과 일치하지 않아요 · 버전 ${revision}`
+                  : note || `정리 완료 · 버전 ${revision}`}
               {compileStartedAt && compileElapsed > 10_000
                 ? " 시간이 조금 걸리고 있어요."
                 : ""}
@@ -770,7 +783,12 @@ export function WorkspaceShell({
               <Question size={17} />
             </button>
             {!needsRecompile && (
-              <button className="button" disabled={pending || sourcePending} onClick={recompile}>
+              <button
+                className="button"
+                disabled={!hasSources || sourcePending || (compileStep !== "idle" && compileStep !== "completed" && compileStep !== "failed")}
+                title={!hasSources ? "원문을 먼저 추가해 주세요" : undefined}
+                onClick={recompile}
+              >
                 <ArrowClockwise size={17} />
                 다시 정리하기
               </button>
