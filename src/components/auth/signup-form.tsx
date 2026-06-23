@@ -30,6 +30,7 @@ export function SignupForm({ next }: { next?: string }) {
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "content-type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
       const data = await response.json();

@@ -7,7 +7,7 @@ export const Accounts: CollectionConfig = {
   },
   auth: {
     cookies: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'Lax',
     },
   },

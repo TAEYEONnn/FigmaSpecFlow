@@ -24,6 +24,7 @@ export function ProfileForm({ initialDisplayName, email }: { initialDisplayName:
       const res = await fetch("/api/auth/me", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ displayName: displayName.trim() }),
       });
       const data = await res.json();
@@ -47,6 +48,7 @@ export function ProfileForm({ initialDisplayName, email }: { initialDisplayName:
       const res = await fetch("/api/auth/change-password", {
         method: "POST",
         headers: { "content-type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ currentPassword, newPassword }),
       });
       const data = await res.json();

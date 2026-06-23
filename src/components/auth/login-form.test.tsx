@@ -10,6 +10,10 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push, refresh }),
 }));
 
+vi.mock("@/lib/auth/storage-access", () => ({
+  ensureBrowserStorageAccess: vi.fn().mockResolvedValue(true),
+}));
+
 describe("LoginForm", () => {
   beforeEach(() => {
     push.mockReset();
@@ -17,7 +21,7 @@ describe("LoginForm", () => {
     vi.stubGlobal("fetch", vi.fn());
   });
 
-  it("submits username and password", async () => {
+  it("submits with credentials:include and Content-Type:application/json", async () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockResolvedValue(
       new Response(JSON.stringify({ error: "아이디 또는 비밀번호를 확인해 주세요." }), {
@@ -35,9 +39,29 @@ describe("LoginForm", () => {
       "/api/auth/login",
       expect.objectContaining({
         method: "POST",
+        credentials: "include",
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+        }),
         body: JSON.stringify({ username: "designer", password: "wrong" }),
       }),
     );
+  });
+
+  it("shows error message on failed login", async () => {
+    const user = userEvent.setup();
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ error: "아이디 또는 비밀번호를 확인해 주세요." }), {
+        status: 401,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    render(<LoginForm />);
+    await user.type(screen.getByLabelText("아이디"), "designer");
+    await user.type(screen.getByLabelText("비밀번호"), "wrong");
+    await user.click(screen.getByRole("button", { name: "로그인" }));
+
     expect(
       await screen.findByText("아이디 또는 비밀번호를 확인해 주세요."),
     ).toBeInTheDocument();
@@ -46,7 +70,7 @@ describe("LoginForm", () => {
   it("navigates once without refreshing after successful login", async () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ ok: true }), {
+      new Response(JSON.stringify({ redirectTo: "/projects" }), {
         status: 200,
         headers: { "content-type": "application/json" },
       }),

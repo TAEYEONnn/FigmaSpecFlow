@@ -7,9 +7,7 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ error?: string; next?: string }>
 }) {
-  const { error, next } = await searchParams
-  const errorMessage =
-    error === 'invalid' ? '아이디 또는 비밀번호를 확인해 주세요.' : undefined
+  const { next } = await searchParams
 
   return (
     <main className="login-page">
@@ -31,7 +29,7 @@ export default async function LoginPage({
         <div className="login-card">
           <h2>로그인</h2>
           <p>작업공간 바로 가기</p>
-          <LoginForm error={errorMessage} isDemo={isDevelopmentDemo} next={next} />
+          <LoginForm isDemo={isDevelopmentDemo} next={next} />
           {isDevelopmentDemo ? (
             <p className="demo-note">
               개발 데모 계정: <strong>designer</strong> / <strong>specflow</strong>
