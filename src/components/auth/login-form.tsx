@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
 
 export function LoginForm({ isDemo = false }: { isDemo?: boolean }) {
-  const router = useRouter();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const [slowIndicator, setSlowIndicator] = useState(false);
@@ -41,7 +39,7 @@ export function LoginForm({ isDemo = false }: { isDemo?: boolean }) {
         setError(data.error ?? "로그인하지 못했어요.");
         return;
       }
-      router.push("/projects");
+      window.location.assign("/projects");
     } catch {
       setError("네트워크 연결을 확인해 주세요.");
     } finally {

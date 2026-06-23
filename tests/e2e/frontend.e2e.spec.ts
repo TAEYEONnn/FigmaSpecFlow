@@ -15,4 +15,29 @@ test.describe('Frontend', () => {
     await expect(page).toHaveTitle(/SpecFlow OS/)
     await expect(page.getByRole('heading', { name: '로그인' })).toBeVisible()
   })
+
+  test('navigates to projects after a successful login', async ({ page }) => {
+    await page.route('/api/auth/login', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true }),
+      })
+    })
+    await page.route('/projects', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'text/html',
+        body: '<html><body><h1>프로젝트</h1></body></html>',
+      })
+    })
+
+    await page.goto('http://localhost:3000/login')
+    await page.getByLabel('아이디').fill('xodusrla@kakao.com')
+    await page.getByLabel('비밀번호').fill('11111111')
+    await page.getByRole('button', { name: '로그인' }).click()
+
+    await expect(page).toHaveURL(/\/projects$/)
+    await expect(page.getByRole('heading', { name: '프로젝트' })).toBeVisible()
+  })
 })
