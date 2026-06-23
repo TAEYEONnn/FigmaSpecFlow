@@ -69,6 +69,10 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    projects: Project;
+    sources: Source;
+    'compilation-runs': CompilationRun;
+    'project-documents': ProjectDocument;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,6 +82,10 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    projects: ProjectsSelect<false> | ProjectsSelect<true>;
+    sources: SourcesSelect<false> | SourcesSelect<true>;
+    'compilation-runs': CompilationRunsSelect<false> | CompilationRunsSelect<true>;
+    'project-documents': ProjectDocumentsSelect<false> | ProjectDocumentsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -123,23 +131,14 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: string;
+  figmaHandle?: string | null;
+  figmaImageUrl?: string | null;
+  /**
+   * Managed by Figma
+   */
+  email?: string | null;
   updatedAt: string;
   createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
-  password?: string | null;
   collection: 'users';
 }
 /**
@@ -160,6 +159,81 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "projects".
+ */
+export interface Project {
+  id: string;
+  name: string;
+  revision?: number | null;
+  needsRecompile?: boolean | null;
+  currentDocument?: (string | null) | ProjectDocument;
+  owner: string | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-documents".
+ */
+export interface ProjectDocument {
+  id: string;
+  project: string | Project;
+  revision: number;
+  document:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  sourceRun?: (string | null) | CompilationRun;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "compilation-runs".
+ */
+export interface CompilationRun {
+  id: string;
+  project: string | Project;
+  status: 'queued' | 'running' | 'completed' | 'failed';
+  model?: string | null;
+  promptVersion?: string | null;
+  durationMs?: number | null;
+  errorCode?: string | null;
+  errorMessage?: string | null;
+  output?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  finishedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sources".
+ */
+export interface Source {
+  id: string;
+  project: string | Project;
+  name?: string | null;
+  sourceType?: ('paste' | 'txt' | 'md' | 'pdf') | null;
+  content?: string | null;
+  sizeBytes?: number | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -192,6 +266,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: string | Media;
+      } | null)
+    | ({
+        relationTo: 'projects';
+        value: string | Project;
+      } | null)
+    | ({
+        relationTo: 'sources';
+        value: string | Source;
+      } | null)
+    | ({
+        relationTo: 'compilation-runs';
+        value: string | CompilationRun;
+      } | null)
+    | ({
+        relationTo: 'project-documents';
+        value: string | ProjectDocument;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -240,22 +330,11 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  figmaHandle?: T;
+  figmaImageUrl?: T;
+  email?: T;
   updatedAt?: T;
   createdAt?: T;
-  email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
-  sessions?:
-    | T
-    | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
-      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -274,6 +353,61 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "projects_select".
+ */
+export interface ProjectsSelect<T extends boolean = true> {
+  name?: T;
+  revision?: T;
+  needsRecompile?: T;
+  currentDocument?: T;
+  owner?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sources_select".
+ */
+export interface SourcesSelect<T extends boolean = true> {
+  project?: T;
+  name?: T;
+  sourceType?: T;
+  content?: T;
+  sizeBytes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "compilation-runs_select".
+ */
+export interface CompilationRunsSelect<T extends boolean = true> {
+  project?: T;
+  status?: T;
+  model?: T;
+  promptVersion?: T;
+  durationMs?: T;
+  errorCode?: T;
+  errorMessage?: T;
+  output?: T;
+  finishedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-documents_select".
+ */
+export interface ProjectDocumentsSelect<T extends boolean = true> {
+  project?: T;
+  revision?: T;
+  document?: T;
+  sourceRun?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
