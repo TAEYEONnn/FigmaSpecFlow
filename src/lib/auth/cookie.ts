@@ -7,7 +7,6 @@ export function getAuthCookieOptions(isProduction: boolean): Partial<ResponseCoo
     httpOnly: true,
     secure: isProduction,
     path: '/',
-    sameSite: isProduction ? 'none' : 'lax',
-    partitioned: isProduction,
+    sameSite: 'lax',
   }
 }
