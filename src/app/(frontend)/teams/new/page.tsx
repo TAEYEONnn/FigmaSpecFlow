@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CreateTeamForm } from "@/components/teams/create-team-form";
 import { LogoutButton } from "@/components/auth/logout-button";
 
@@ -5,10 +6,10 @@ export default function NewTeamPage() {
   return (
     <main className="projects-page">
       <header className="projects-header">
-        <div className="brand">
+        <Link className="brand" href="/projects">
           <span className="brand-mark" aria-hidden />
           <span>SpecFlow OS</span>
-        </div>
+        </Link>
         <LogoutButton />
       </header>
       <section className="new-project-shell">

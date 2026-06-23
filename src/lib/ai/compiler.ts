@@ -1,5 +1,5 @@
 import { generateText, Output } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
+import { openai } from "@ai-sdk/openai";
 import { demoSpecDocument } from "@/lib/spec/demo-document";
 import { splitIntoChunks } from "@/lib/ai/cost-estimate";
 import { specDocumentSchema, type SpecDocument } from "@/lib/spec/schema";
@@ -140,7 +140,7 @@ export async function compileSpecDocument(
 ): Promise<SpecDocument> {
   const mode =
     options.mode ??
-    (process.env.ANTHROPIC_API_KEY || process.env.NODE_ENV === "production"
+    (process.env.OPENAI_API_KEY || process.env.NODE_ENV === "production"
       ? "live"
       : "demo");
 
@@ -148,8 +148,8 @@ export async function compileSpecDocument(
     return structuredClone(demoSpecDocument);
   }
 
-  if (!process.env.ANTHROPIC_API_KEY?.trim()) {
-    throw new Error("ANTHROPIC_API_KEY 환경변수가 필요합니다.");
+  if (!process.env.OPENAI_API_KEY?.trim()) {
+    throw new Error("OPENAI_API_KEY 환경변수가 필요합니다.");
   }
 
   const chunks = splitIntoChunks(source);
@@ -163,9 +163,9 @@ export async function compileSpecDocument(
 }
 
 async function compileSingleChunk(source: string): Promise<SpecDocument> {
-  const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
+  const model = process.env.OPENAI_MODEL ?? "gpt-4o";
   const { experimental_output } = await generateText({
-    model: anthropic(model),
+    model: openai(model),
     output: Output.object({ schema: specDocumentSchema, name: "spec_document" }),
     system: [
       "당신은 정확성과 추적 가능성을 최우선으로 하는 프로덕트 디자인 업무 컴파일러입니다.",

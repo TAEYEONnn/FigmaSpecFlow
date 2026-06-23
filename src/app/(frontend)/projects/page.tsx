@@ -15,6 +15,7 @@ export default async function ProjectsPage() {
           <span className="brand-mark" aria-hidden />
           <span>SpecFlow OS</span>
         </Link>
+        <Link className="button button-ghost button-sm" href="/teams/new">+ 팀</Link>
         <Link className="button button-ghost button-sm" href="/profile">프로필</Link>
         <LogoutButton />
       </header>
