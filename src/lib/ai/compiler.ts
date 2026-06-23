@@ -2,7 +2,7 @@ import { generateText, Output } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { demoSpecDocument } from "@/lib/spec/demo-document";
 import { splitIntoChunks } from "@/lib/ai/cost-estimate";
-import { specDocumentSchema, type SpecDocument } from "@/lib/spec/schema";
+import { aiSpecDocumentSchema, specDocumentSchema, type SpecDocument } from "@/lib/spec/schema";
 
 export const COMPILER_PROMPT_VERSION = "2026-06-21.v3";
 export type CompilerMode = "demo" | "live";
@@ -166,7 +166,10 @@ async function compileSingleChunk(source: string): Promise<SpecDocument> {
   const model = process.env.OPENAI_MODEL ?? "gpt-5.4-mini";
   const { experimental_output } = await generateText({
     model: openai(model),
-    output: Output.object({ schema: specDocumentSchema, name: "spec_document" }),
+    // Use aiSpecDocumentSchema (no .catch()) so OpenAI strict structured-outputs
+    // accepts every property as required. figmaMapping/suppressedTaskKeys are
+    // injected as defaults below after parsing.
+    output: Output.object({ schema: aiSpecDocumentSchema, name: "spec_document" }),
     system: [
       "당신은 정확성과 추적 가능성을 최우선으로 하는 프로덕트 디자인 업무 컴파일러입니다.",
       "제공된 spec_document 스키마를 엄격히 따르고 모든 필드를 반환하세요.",
@@ -180,7 +183,23 @@ async function compileSingleChunk(source: string): Promise<SpecDocument> {
   if (!experimental_output) {
     throw new Error("AI가 구조화된 명세를 반환하지 않았습니다.");
   }
-  return specDocumentSchema.parse(experimental_output);
+
+  // Merge AI output with app-managed defaults excluded from the AI schema
+  const withDefaults = {
+    ...experimental_output,
+    suppressedTaskKeys: [],
+    figmaMapping: {
+      fileUrl: "",
+      fileKey: null,
+      libraryName: null,
+      recommendations: [],
+      analyzedAt: null,
+      status: "idle" as const,
+      error: null,
+    },
+  };
+
+  return specDocumentSchema.parse(withDefaults);
 }
 
 function dedupeById(arr: { id: string }[]): { id: string }[] {
