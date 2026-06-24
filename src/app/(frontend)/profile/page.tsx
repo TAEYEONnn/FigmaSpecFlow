@@ -11,6 +11,8 @@ export default async function ProfilePage() {
 
   const payload = await getPayload({ config });
   const account = await payload.findByID({ collection: "accounts", id: auth.userId });
+  const acc = account as unknown as Record<string, unknown>;
+  const isAdmin = (acc.role as string) === 'admin';
 
   return (
     <main className="projects-page">
@@ -26,9 +28,22 @@ export default async function ProfilePage() {
       <section className="new-project-shell">
         <h1>프로필 설정</h1>
         <ProfileForm
-          initialDisplayName={(account as unknown as Record<string, unknown>).displayName as string ?? ""}
+          initialDisplayName={(acc.displayName as string) ?? ""}
           email={auth.username}
         />
+        {isAdmin && (
+          <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid var(--line)' }}>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '8px' }}>관리 도구</p>
+            <a
+              href="/admin"
+              target="_blank"
+              rel="noreferrer"
+              className="button button-ghost button-sm"
+            >
+              관리자 화면 열기 ↗
+            </a>
+          </div>
+        )}
       </section>
     </main>
   );

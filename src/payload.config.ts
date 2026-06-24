@@ -20,11 +20,34 @@ import ChatMessages from './collections/ChatMessages'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-export default buildFigmaConfig({
+// buildFigmaConfig injects oAuth2Plugin which sets disableLocalStrategy=true by
+// default on the users collection. When FIGMA_OAUTH_CLIENT_ID is absent (bootstrap
+// not yet completed), this leaves no working auth path for Payload Admin.
+// Patching after buildFigmaConfig restores local email+password as a fallback.
+function withLocalStrategyFallback(configPromise: ReturnType<typeof buildFigmaConfig>) {
+  return configPromise.then((config) => {
+    if (!process.env.FIGMA_OAUTH_CLIENT_ID) {
+      const users = config.collections?.find((c) => c.slug === 'users') as
+        | (typeof config.collections[number] & { auth?: Record<string, unknown> })
+        | undefined
+      if (users && users.auth && typeof users.auth === 'object') {
+        // SanitizedCollectionConfig types disableLocalStrategy as true|{...}.
+        // Deleting the key is the correct way to re-enable local strategy.
+        delete (users.auth as Record<string, unknown>)['disableLocalStrategy']
+      }
+    }
+    return config
+  })
+}
+
+export default withLocalStrategyFallback(buildFigmaConfig({
   admin: {
     user: Users.slug,
     importMap: {
       baseDir: path.resolve(dirname),
+    },
+    components: {
+      afterNavLinks: ['@/components/admin/back-to-app-link#BackToAppLink'],
     },
   },
   collections: [
@@ -49,4 +72,4 @@ export default buildFigmaConfig({
   },
   plugins: [],
   figma: {},
-})
+}))

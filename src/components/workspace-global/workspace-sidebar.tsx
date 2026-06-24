@@ -1,6 +1,7 @@
 "use client"
 
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import {
   ChatCircleDots,
@@ -14,6 +15,17 @@ import {
 } from '@phosphor-icons/react'
 
 import { useActiveTeam } from '@/components/workspace-global/active-team-provider'
+
+function useIsAdmin() {
+  const [isAdmin, setIsAdmin] = useState(false)
+  useEffect(() => {
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data?.role === 'admin') setIsAdmin(true) })
+      .catch(() => undefined)
+  }, [])
+  return isAdmin
+}
 
 const groups = [
   {
@@ -44,6 +56,7 @@ const groups = [
 export function WorkspaceSidebar() {
   const pathname = usePathname()
   const { teams, activeTeam, setActiveTeamId } = useActiveTeam()
+  const isAdmin = useIsAdmin()
 
   return (
     <aside className="global-sidebar">
@@ -87,6 +100,16 @@ export function WorkspaceSidebar() {
           <Link className="global-nav-item" href="/profile">
             <UserCircle size={18} />프로필
           </Link>
+          {isAdmin && (
+            <a
+              className="global-nav-item"
+              href="/admin"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <UserCircle size={18} />관리자 화면 열기 ↗
+            </a>
+          )}
         </section>
       </nav>
     </aside>

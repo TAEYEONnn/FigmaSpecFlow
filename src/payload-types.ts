@@ -185,6 +185,7 @@ export interface User {
 export interface Account {
   id: string;
   displayName?: string | null;
+  role?: ('user' | 'admin') | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -590,6 +591,7 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface AccountsSelect<T extends boolean = true> {
   displayName?: T;
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;

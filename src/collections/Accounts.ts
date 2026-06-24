@@ -32,5 +32,19 @@ export const Accounts: CollectionConfig = {
       type: 'text',
       label: '표시 이름',
     },
+    {
+      name: 'role',
+      type: 'select',
+      label: '서비스 권한',
+      defaultValue: 'user',
+      options: [
+        { label: '일반 사용자', value: 'user' },
+        { label: '관리자', value: 'admin' },
+      ],
+      // Service users cannot escalate their own role — only Payload Admin can.
+      access: {
+        update: ({ req }) => req.user?.collection !== 'accounts',
+      },
+    },
   ],
 }

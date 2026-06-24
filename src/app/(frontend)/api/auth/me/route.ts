@@ -10,10 +10,12 @@ export async function GET() {
   const payload = await getPayload({ config })
   const user = await payload.findByID({ collection: 'accounts', id: auth.userId })
 
+  const u = user as unknown as Record<string, unknown>
   return NextResponse.json({
     id: String(user.id),
     email: user.email,
-    displayName: (user as unknown as Record<string, unknown>).displayName ?? null,
+    displayName: u.displayName ?? null,
+    role: (u.role as string) ?? 'user',
   })
 }
 

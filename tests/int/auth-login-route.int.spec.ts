@@ -29,7 +29,7 @@ describe('auth session cookie responses', () => {
     login.mockReset()
   })
 
-  it('issues exactly one non-expired payload-token after successful login', async () => {
+  it('issues exactly one non-expired app-session after successful login', async () => {
     login.mockResolvedValue({
       token: 'header.payload.signature',
       user: { id: 'account-1', email: 'xodusrla@kakao.com' },
@@ -39,8 +39,8 @@ describe('auth session cookie responses', () => {
     const setCookie = response.headers.get('set-cookie') ?? ''
 
     expect(response.status).toBe(200)
-    expect(setCookie.match(/payload-token=/g)).toHaveLength(1)
-    expect(setCookie).toContain('payload-token=header.payload.signature')
+    expect(setCookie.match(/app-session=/g)).toHaveLength(1)
+    expect(setCookie).toContain('app-session=header.payload.signature')
     expect(setCookie).toContain('HttpOnly')
     expect(setCookie).toContain('Secure')
     expect(setCookie).toContain('SameSite=lax')
@@ -80,7 +80,7 @@ describe('auth session cookie responses', () => {
     const setCookie = response.headers.get('set-cookie') ?? ''
 
     expect(response.status).toBe(200)
-    expect(setCookie).toContain('payload-token=')
+    expect(setCookie).toContain('app-session=')
     expect(setCookie).toContain('Max-Age=0')
     expect(setCookie).toContain('1970')
   })
